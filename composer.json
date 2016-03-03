@@ -26,8 +26,5 @@
         "files": [
             "src/base.php",
         ],
-        "psr-4": {
-            "Illuminate\\": "src/Illuminate/"
-        }
     },
 }
