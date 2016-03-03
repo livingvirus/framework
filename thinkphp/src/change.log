@@ -1,0 +1,5 @@
+1.目录结构调整
+2.变量THINK_PATH
+App.php
+
+注释了Lang::load(THINK_PATH . 'lang' . DS . LANG_SET . EXT);
