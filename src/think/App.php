@@ -50,14 +50,14 @@ class App
         $config = Config::get();
 
         // 加载额外文件
-        if (!empty($config['extra_file_list'])) {
-            foreach ($config['extra_file_list'] as $file) {
-                $file = strpos($file, '.') ? $file : APP_PATH . $file . EXT;
-                if (is_file($file)) {
-                    include_once $file;
-                }
-            }
-        }
+        // if (!empty($config['extra_file_list'])) {
+        //     foreach ($config['extra_file_list'] as $file) {
+        //         $file = strpos($file, '.') ? $file : APP_PATH . $file . EXT;
+        //         if (is_file($file)) {
+        //             include_once $file;
+        //         }
+        //     }
+        // }
 
         // 设置系统时区
         date_default_timezone_set($config['default_timezone']);
