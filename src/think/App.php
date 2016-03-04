@@ -28,16 +28,13 @@ class App
      */
     public static function run()
     {
-        Loader::register();
-
-        // 注册错误和异常处理机制
-        register_shutdown_function('think\Error::appShutdown');
-        set_error_handler('think\Error::appError');
-        set_exception_handler('think\Error::appException');
-        $mode = require CORE_PATH . APP_MODE . EXT;
-        Config::load($mode['config']);
-        Config::load($mode['tags']);
-
+        //Loader::register();
+        // 注册错误和异常处理机制 以及初始化配置
+        
+        register_shutdown_function('\think\Error::appShutdown');
+        set_error_handler('\think\Error::appError');
+        set_exception_handler('\think\Error::appException');;
+        Config::load(THINK_PATH. 'config' . EXT);
         // 初始化应用（公共模块）
         self::initModule(COMMON_MODULE, Config::get());
 
