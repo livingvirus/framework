@@ -1,0 +1,35 @@
+{
+    "name": "livingvirus/framework",
+    "description": "the new new thinkphp framework",
+    "type": "project",
+    "keywords": ["framework", "thinkphp", "ORM"],
+    "homepage": "",
+    "license": "Apache2",
+    "authors": [
+        {
+            "name": "livingvirus",
+            "email": "livingviruskang@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "require-dev": {
+        "johnkary/phpunit-speedtrap": "^1.0",
+        "mikey179/vfsStream": "~1.6",
+        "phploc/phploc": "*",
+        "phpunit/phpunit": "4.8.*",
+        "sebastian/phpcpd": "*",
+        "squizlabs/php_codesniffer": "2.*"
+    },
+    "autoload": {
+        "files": [
+            "src/base.php",
+            "src/helper.php"
+        ],
+        "psr-4": {
+            "think\\": "src/think/",
+            "traits\\": "src/traits/"
+        }
+    }
+}
