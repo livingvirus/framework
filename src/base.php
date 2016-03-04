@@ -33,7 +33,7 @@ defined('DATA_PATH') or define('DATA_PATH', RUNTIME_PATH . 'data' . DS);
 defined('LOG_PATH') or define('LOG_PATH', RUNTIME_PATH . 'log' . DS);
 defined('CACHE_PATH') or define('CACHE_PATH', RUNTIME_PATH . 'cache' . DS);
 defined('TEMP_PATH') or define('TEMP_PATH', RUNTIME_PATH . 'temp' . DS);
-//defined('VENDOR_PATH') or define('VENDOR_PATH', THINK_PATH . 'vendor' . DS);
+defined('VENDOR_PATH') or define('VENDOR_PATH', THINK_PATH . 'vendor' . DS);
 defined('EXT') or define('EXT', '.php');
 defined('MODEL_LAYER') or define('MODEL_LAYER', 'model');
 defined('VIEW_LAYER') or define('VIEW_LAYER', 'view');
