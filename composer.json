@@ -23,6 +23,10 @@
         "squizlabs/php_codesniffer": "2.*"
     },
     "autoload": {
-        "files": ["src/base.php"]
+        "files": ["src/base.php"],
+        "psr-4": {
+            "think\\": "src/think/",
+            "traits\\": "src/traits/"
+        }
     }
 }
