@@ -37,7 +37,7 @@ class Socket
      * @param array $config 缓存参数
      * @access public
      */
-    public function __construct($config = [])
+    public function __construct(array $config = [])
     {
         if (!empty($config)) {
             $this->config = array_merge($this->config, $config);
@@ -48,10 +48,16 @@ class Socket
         }
     }
 
-    public function save($logs = [])
+    /**
+     * 日志写入接口
+     * @access public
+     * @param array $logs 日志信息
+     * @return bool
+     */
+    public function save(array $logs = [])
     {
         if (!$this->check()) {
-            return;
+            return false;
         }
         $runtime    = number_format(microtime(true) - START_TIME, 6);
         $reqs       = number_format(1 / $runtime, 2);
@@ -94,7 +100,7 @@ class Socket
         ];
 
         foreach ($logs as &$log) {
-            if (in_array($log['type'], ['sql', 'notic', 'debug', 'info'])) {
+            if (in_array($log['type'], ['sql', 'notice', 'debug', 'info'])) {
                 $log['type'] = 'log';
             }
         }
@@ -112,7 +118,7 @@ class Socket
         } else {
             $this->sendToClient($tabid, $client_id, $logs, '');
         }
-
+        return true;
     }
 
     /**

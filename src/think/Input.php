@@ -58,6 +58,24 @@ class Input
         }
         return self::data($_PUT, $name, $default, $filter, $merge);
     }
+    
+    /**
+     * 获取delete变量
+     * @param string $name 数据名称
+     * @param string $default 默认值
+     * @param string $filter 过滤方法
+     * @param boolean $merge 是否与默认的过虑方法合并
+     * @return mixed
+     */
+    public static function delete($name = '', $default = null, $filter = null, $merge = false)
+    {
+        static $_DELETE = null;
+        if (is_null($_DELETE)) {
+            parse_str(file_get_contents('php://input'), $_DELETE);
+            $_DELETE = array_merge($_DELETE, $_GET);
+        }
+        return self::data($_DELETE, $name, $default, $filter, $merge);
+    }
 
     /**
      * 根据请求方法获取变量
@@ -75,6 +93,9 @@ class Input
                 break;
             case 'PUT':
                 $method = 'put';
+                break;
+            case 'DELETE':
+                $method = 'delete';
                 break;
             default:
                 $method = 'get';
@@ -201,7 +222,7 @@ class Input
      * @param boolean $merge 是否与默认的过虑方法合并
      * @return mixed
      */
-    public static function data($input, $name, $default = null, $filter = null, $merge = false)
+    public static function data($input, $name = '', $default = null, $filter = null, $merge = false)
     {
         if (0 === strpos($name, '?')) {
             return self::has(substr($name, 1), $input);

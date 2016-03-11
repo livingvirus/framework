@@ -15,12 +15,13 @@ class Route
 {
     // 路由规则
     private static $rules = [
-        'GET'    => [],
-        'POST'   => [],
-        'PUT'    => [],
-        'DELETE' => [],
-        'HEAD'   => [],
-        '*'      => [],
+        'GET'     => [],
+        'POST'    => [],
+        'PUT'     => [],
+        'DELETE'  => [],
+        'HEAD'    => [],
+        'OPTIONS' => [],
+        '*'       => [],
     ];
 
     // REST路由操作方法定义
@@ -68,8 +69,8 @@ class Route
     {
         if (is_array($name)) {
             self::${$var} = self::${$var}+$name;
-        } elseif (empty($name)) {
-            return self::${$var};
+        } elseif (empty($value)) {
+            return empty($name) ? self::${$var} : self::${$var}[$name];
         } else {
             self::${$var}[$name] = $value;
         }
@@ -136,8 +137,6 @@ class Route
                 if (0 === strpos($rule, '[')) {
                     $rule   = substr($rule, 1, -1);
                     $result = ['routes' => $route, 'option' => $option, 'pattern' => $pattern];
-                } elseif (is_array($route)) {
-                    $result = ['route' => !empty($route[0]) ? $route[0] : '', 'option' => !empty($route[1]) ? $route[1] : '', 'pattern' => !empty($route[2]) ? $route[2] : ''];
                 } else {
                     $result = ['route' => $route, 'option' => $option, 'pattern' => $pattern];
                 }
@@ -327,6 +326,11 @@ class Route
     // 检测URL路由
     public static function check($url, $depr = '/', $checkDomain = false)
     {
+        // 检测域名部署
+        if ($checkDomain) {
+            self::checkDomain();
+        }
+
         // 分隔符替换 确保路由定义使用统一的分隔符
         if ('/' != $depr) {
             $url = str_replace($depr, '/', $url);
@@ -348,11 +352,6 @@ class Route
         if (!empty(self::$rules['*'])) {
             // 合并任意请求的路由规则
             $rules = array_merge(self::$rules['*'], $rules);
-        }
-
-        // 检测域名部署
-        if ($checkDomain) {
-            self::checkDomain();
         }
 
         // 检测URL绑定
@@ -392,8 +391,9 @@ class Route
                             }
                             $pattern = array_merge($pattern, isset($route[2]) ? $route[2] : []);
                             $route   = $route[0];
+                            $option  = array_merge($option, $option1);
                         }
-                        $result = self::checkRule($key, $route, $url1, $pattern, $option1);
+                        $result = self::checkRule($key, $route, $url1, $pattern, $option);
                         if (false !== $result) {
                             return $result;
                         }
@@ -665,6 +665,9 @@ class Route
             self::parseUrlParams(implode('/', $paths), $var);
             // 路由到模块/控制器/操作
             $result = ['type' => 'module', 'module' => $result['route']];
+            // 路由地址中的控制器和操作关闭自动转换
+            Config::set('url_controller_convert', false);
+            Config::set('url_action_convert', false);
         }
         return $result;
     }

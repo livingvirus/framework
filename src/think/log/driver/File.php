@@ -15,7 +15,6 @@ namespace think\log\driver;
  */
 class File
 {
-
     protected $config = [
         'time_format' => ' c ',
         'file_size'   => 2097152,
@@ -25,16 +24,18 @@ class File
     // 实例化并传入参数
     public function __construct($config = [])
     {
-        $this->config = array_merge($this->config, $config);
+        if (is_array($config)) {
+            $this->config = array_merge($this->config, $config);
+        }
     }
 
     /**
      * 日志写入接口
      * @access public
      * @param array $log 日志信息
-     * @return void
+     * @return bool
      */
-    public function save($log = [])
+    public function save(array $log = [])
     {
         $now         = date($this->config['time_format']);
         $destination = $this->config['path'] . date('y_m_d') . '.log';
@@ -68,7 +69,12 @@ class File
         foreach ($log as $line) {
             $info .= '[' . $line['type'] . '] ' . $line['msg'] . "\r\n";
         }
-        error_log("[{$now}] {$_SERVER['SERVER_ADDR']} {$_SERVER['REMOTE_ADDR']} {$_SERVER['REQUEST_URI']}\r\n{$info}\r\n", 3, $destination);
+
+        $server = isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : '0.0.0.0';
+        $remote = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
+        $method = REQUEST_METHOD;
+        $uri    = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+        return error_log("[{$now}] {$server} {$remote} {$method} {$uri}\r\n{$info}\r\n", 3, $destination);
     }
 
 }

@@ -16,7 +16,7 @@ class View
     // 视图实例
     protected static $instance = null;
     // 模板引擎实例
-    protected $engine = null;
+    public $engine = null;
     // 模板主题名称
     protected $theme = '';
     // 模板变量
@@ -27,7 +27,6 @@ class View
         'auto_detect_theme' => false,
         'var_theme'         => 't',
         'default_theme'     => 'default',
-        'http_cache_id'     => null,
         'view_path'         => '',
         'view_suffix'       => '.html',
         'view_depr'         => DS,
@@ -82,7 +81,7 @@ class View
      * @param string $value 值
      * @return View
      */
-    public function config($config = '', $value = '')
+    public function config($config = '', $value = null)
     {
         if (is_array($config)) {
             foreach ($this->config as $key => $val) {
@@ -90,6 +89,9 @@ class View
                     $this->config[$key] = $config[$key];
                 }
             }
+        } elseif (is_null($value)) {
+            // 获取配置参数
+            return $this->config[$config];
         } else {
             $this->config[$config] = $value;
         }
@@ -143,13 +145,13 @@ class View
      *
      * @param string $template 模板文件名或者内容
      * @param array  $vars     模板输出变量
-     * @param array  $cache     模板缓存参数
+     * @param array  $config     模板参数
      * @param bool   $renderContent 是否渲染内容
      *
      * @return string
      * @throws Exception
      */
-    public function fetch($template = '', $vars = [], $cache = [], $renderContent = false)
+    public function fetch($template = '', $vars = [], $config = [], $renderContent = false)
     {
         // 模板变量
         $vars = $vars ? $vars : $this->data;
@@ -173,14 +175,20 @@ class View
             is_file($template) ? include $template : eval('?>' . $template);
         } else {
             // 指定模板引擎
-            $this->engine->fetch($template, $vars, $cache);
+            $this->engine->fetch($template, $vars, $config);
         }
         // 获取并清空缓存
         $content = ob_get_clean();
+        // 内容过滤标签
+        APP_HOOK && Hook::listen('view_filter', $content);
         // 允许用户自定义模板的字符串替换
         if (!empty($this->config['parse_str'])) {
             $replace = $this->config['parse_str'];
             $content = str_replace(array_keys($replace), array_values($replace), $content);
+        }
+        if (!Config::get('response_auto_output')) {
+            // 自动响应输出
+            return Response::send($content, Response::type());
         }
         return $content;
     }
@@ -208,11 +216,14 @@ class View
         if (is_file($template)) {
             return realpath($template);
         }
+        if (strpos($template, $this->config['view_suffix'])) {
+            return $template;
+        }
         $depr     = $this->config['view_depr'];
         $template = str_replace(['/', ':'], $depr, $template);
 
         // 获取当前模块
-        $module = MODULE_NAME;
+        $module = defined('MODULE_NAME') ? MODULE_NAME : '';
         if (strpos($template, '@')) {
             // 跨模块调用模版文件
             list($module, $template) = explode('@', $template);
@@ -221,11 +232,13 @@ class View
         defined('THEME_PATH') || define('THEME_PATH', $this->getThemePath($module));
 
         // 分析模板文件规则
-        if ('' == $template) {
-            // 如果模板文件名为空 按照默认规则定位
-            $template = CONTROLLER_NAME . $depr . ACTION_NAME;
-        } elseif (false === strpos($template, $depr)) {
-            $template = CONTROLLER_NAME . $depr . $template;
+        if (defined('CONTROLLER_NAME')) {
+            if ('' == $template) {
+                // 如果模板文件名为空 按照默认规则定位
+                $template = str_replace('.', DS, CONTROLLER_NAME) . $depr . ACTION_NAME;
+            } elseif (false === strpos($template, $depr)) {
+                $template = str_replace('.', DS, CONTROLLER_NAME) . $depr . $template;
+            }
         }
         return THEME_PATH . $template . $this->config['view_suffix'];
     }
@@ -268,7 +281,7 @@ class View
      * @param  string $module 模块名
      * @return string
      */
-    protected function getThemePath($module = MODULE_NAME)
+    protected function getThemePath($module = '')
     {
         // 获取当前主题名称
         $theme = $this->getTemplateTheme($module);

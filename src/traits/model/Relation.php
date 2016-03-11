@@ -97,9 +97,10 @@ trait Relation
      * 对保存到数据库的数据进行处理
      * @access protected
      * @param mixed $data 要操作的数据
-     * @return boolean
+     * @param string $type insert 或者 update
+     * @return array
      */
-    protected function _write_data($data)
+    protected function _write_data($data, $type)
     {
         $this->_before_write($data);
         return $data;
@@ -375,7 +376,7 @@ trait Relation
             return false;
         }
         if (!empty($this->_link)) {
-            $fields = $this->getDbFields();
+            $fields = $this->getFields();
             // 遍历关联定义
             foreach ($this->_link as $key => $val) {
                 // 操作制定关联类型
