@@ -69,7 +69,7 @@ class App {
 			break;
 		case 'controller':
 			// 执行控制器操作
-			$data = Loader::action(self::$dispatch['controller'], self::$dispatch['params']);
+			//$data = Loader::action(self::$dispatch['controller'], self::$dispatch['params']);
 			break;
 		case 'method':
 			// 执行回调方法
@@ -191,7 +191,12 @@ class App {
 			// 操作绑定到类后 固定执行run入口
 			$action = 'run';
 		} else {
-			$instance = Loader::controller(CONTROLLER_NAME, '', Config::get('empty_controller'));
+			$class = '\\' .APP_NAMESPACE . '\\' .  $module . '\\'  . CONTROLLER_LAYER. '\\'  . CONTROLLER_NAME;
+			if (class_exists($class)) {
+					$instance = new $class;
+			}else{
+				throw new Exception('class not exist :' . $class, 10007);
+			}
 			// 获取当前操作名
 			$action = ACTION_NAME . Config::get('action_suffix');
 		}

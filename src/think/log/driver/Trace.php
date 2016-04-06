@@ -35,7 +35,7 @@ class Trace
      */
     public function save($log = [])
     {
-        if (IS_AJAX || IS_CLI || IS_API) {
+        if (IS_AJAX || IS_CLI ) {
             // ajax cli api方式下不输出
             return;
         }

@@ -343,7 +343,7 @@ class Route
         }
 
         // 获取当前请求类型的路由规则
-        $rules = self::$rules[REQUEST_METHOD];
+        $rules = self::$rules[$_SERVER['REQUEST_METHOD']];
 
         if (!empty(self::$rules['*'])) {
             // 合并任意请求的路由规则
@@ -458,7 +458,7 @@ class Route
     private static function checkOption($option, $url)
     {
         // 请求类型检测
-        if ((isset($option['method']) && false === stripos($option['method'], REQUEST_METHOD))
+        if ((isset($option['method']) && false === stripos($option['method'], $_SERVER['REQUEST_METHOD']))
             || (isset($option['ext']) && false === stripos($option['ext'], __EXT__)) // 伪静态后缀检测
              || (isset($option['domain']) && !in_array($option['domain'], [$_SERVER['HTTP_HOST'], self::$subDomain])) // 域名检测
              || (!empty($option['https']) && !self::isSsl()) // https检测
@@ -583,7 +583,7 @@ class Route
                 $module     = !empty($path) ? array_pop($path) : null;
                 // REST 操作方法支持
                 if ('[rest]' == $action) {
-                    $action = REQUEST_METHOD;
+                    $action = $_SERVER['REQUEST_METHOD'];
                 }
             }
             $route = [$module, $controller, $action];

@@ -105,7 +105,7 @@ class Error
             } else {
                 $e = $error;
             }
-        } elseif (!IS_API) {
+        } else {
             //否则定向到错误页面
             $error_page = Config::get('error_page');
             if (!empty($error_page)) {
@@ -121,7 +121,7 @@ class Error
         Log::write('[' . $e['code'] . '] ' . $e['message'] . '[' . $e['file'] . ' : ' . $e['line'] . ']', 'error');
 
         $type = Config::get('default_return_type');
-        if (!IS_API && 'html' == $type) {
+        if ('html' == $type) {
             include Config::get('exception_tmpl');
         } else {
             // 异常信息输出监听
