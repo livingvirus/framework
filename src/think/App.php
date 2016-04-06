@@ -149,7 +149,7 @@ class App {
 	// 执行 模块/控制器/操作
 	private static function module($result, $config) {
 		// 多模块部署
-		$module = strtolower($result[0] ?: $config['default_module']);
+		$module = $result[0] ?: $config['default_module'];
 		if ($maps = $config['url_module_map']) {
 			if (isset($maps[$module])) {
 				// 记录当前别名
@@ -191,10 +191,10 @@ class App {
 			// 操作绑定到类后 固定执行run入口
 			$action = 'run';
 		} else {
-			$class = '\\' .APP_NAMESPACE . '\\' .  $module . '\\'  . CONTROLLER_LAYER. '\\'  . CONTROLLER_NAME;
+			$class = '\\' . APP_NAMESPACE . '\\' . $module . '\\' . CONTROLLER_LAYER . '\\' . CONTROLLER_NAME;
 			if (class_exists($class)) {
-					$instance = new $class;
-			}else{
+				$instance = new $class;
+			} else {
 				throw new Exception('class not exist :' . $class, 10007);
 			}
 			// 获取当前操作名
