@@ -70,77 +70,6 @@ function G($start, $end = '', $dec = 6)
 }
 
 /**
- * 实例化一个没有模型文件的Model
- * @param string $name Model名称 支持指定基础模型 例如 MongoModel:User
- * @param string $tablePrefix 表前缀
- * @param mixed $connection 数据库连接信息
- * @return \Think\Model
- */
-function M($name = '', $tablePrefix = '', $connection = '')
-{
-    return \think\Loader::table($name, ['prefix' => $tablePrefix, 'connection' => $connection]);
-}
-
-/**
- * 实例化Model
- * @param string $name Model名称
- * @param string $layer 业务层名称
- * @return object
- */
-function D($name = '', $layer = MODEL_LAYER)
-{
-    return \think\Loader::model($name, $layer);
-}
-
-/**
- * 实例化数据库类
- * @param array $config 数据库配置参数
- * @return object
- */
-function db($config = [])
-{
-    return \think\Db::connect($config);
-}
-
-/**
- * 实例化控制器 格式：[模块/]控制器
- * @param string $name 资源地址
- * @param string $layer 控制层名称
- * @return object
- */
-function A($name, $layer = CONTROLLER_LAYER)
-{
-    return \think\Loader::controller($name, $layer);
-}
-
-/**
- * 调用模块的操作方法 参数格式 [模块/控制器/]操作
- * @param string $url 调用地址
- * @param string|array $vars 调用参数 支持字符串和数组
- * @param string $layer 要调用的控制层名称
- * @return mixed
- */
-function R($url, $vars = [], $layer = CONTROLLER_LAYER)
-{
-    return \think\Loader::action($url, $vars, $layer);
-}
-
-
-
-/**
- * 抛出异常处理
- *
- * @param string  $msg  异常消息
- * @param integer $code 异常代码 默认为0
- *
- * @throws \think\Exception
- */
-function E($msg, $code = 0)
-{
-    throw new \think\Exception($msg, $code);
-}
-
-/**
  * 浏览器友好的变量输出
  * @param mixed $var 变量
  * @param boolean $echo 是否输出 默认为true 如果为false 则返回输出字符串
@@ -150,22 +79,6 @@ function E($msg, $code = 0)
 function dump($var, $echo = true, $label = null)
 {
     return \think\Debug::dump($var, $echo, $label);
-}
-
-/**
- * 渲染输出Widget
- * @param string $name Widget名称
- * @param array $data 传人的参数
- * @return mixed
- */
-function W($name, $data = [])
-{
-    return \think\Loader::action($name, $data, 'Widget');
-}
-
-function U($url, $vars = '', $suffix = true, $domain = false)
-{
-    return \think\Url::build($url, $vars, $suffix, $domain);
 }
 
 function session($name, $value = '')
@@ -254,15 +167,4 @@ function trace($log = '[think]', $level = 'log')
     } else {
         \think\Log::record($log, $level);
     }
-}
-
-/**
- * 渲染模板输出
- * @param string $template 模板文件
- * @param array $vars 模板变量
- * @return string
- */
-function V($template = '', $vars = [])
-{
-    return \think\View::instance(\think\Config::get())->fetch($template, $vars);
 }
