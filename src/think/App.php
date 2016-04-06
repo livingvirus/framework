@@ -28,16 +28,22 @@ class App
      */
     public static function run()
     {
-        //Loader::register();
         // 注册错误和异常处理机制 以及初始化配置
-
         register_shutdown_function('\think\Error::appShutdown');
         set_error_handler('\think\Error::appError');
         set_exception_handler('\think\Error::appException');
         Config::load(THINK_PATH . 'config' . EXT);
         // 初始化应用（公共模块） 初始化变量配置
         self::initModule(COMMON_MODULE, Config::get());
-
+        // 加载额外文件
+        if (!empty($config['extra_file_list'])) {
+            foreach ($config['extra_file_list'] as $file) {
+                $file = strpos($file, '.') ? $file : APP_PATH . $file . EXT;
+                if (is_file($file)) {
+                    include_once $file;
+                }
+            }
+        }
         // 获取配置参数
         $config = Config::get();
         // 设置系统时区
@@ -268,21 +274,6 @@ class App
             $path = APP_PATH . $module;
             // 加载模块配置
             Config::load(APP_PATH . $module . 'config' . EXT);
-
-            // 加载应用状态配置
-            if ($config['app_status']) {
-                Config::load(APP_PATH . $module . $config['app_status'] . EXT);
-            }
-
-            // 加载别名文件
-            if (is_file($path . 'alias' . EXT)) {
-                Loader::addMap(include $path . 'alias' . EXT);
-            }
-
-            // 加载行为扩展文件
-            if (APP_HOOK && is_file($path . 'tags' . EXT)) {
-                Hook::import(include $path . 'tags' . EXT);
-            }
 
             // 加载公共文件
             if (is_file($path . 'common' . EXT)) {

@@ -22,7 +22,6 @@ defined('APP_PATH') or define('APP_PATH', dirname($_SERVER['SCRIPT_FILENAME']) .
 defined('APP_NAMESPACE') or define('APP_NAMESPACE', 'app');
 defined('COMMON_MODULE') or define('COMMON_MODULE', 'common');
 defined('RUNTIME_PATH') or define('RUNTIME_PATH', dirname(APP_PATH) . DS . 'runtime' . DS);
-defined('DATA_PATH') or define('DATA_PATH', RUNTIME_PATH . 'data' . DS);
 defined('LOG_PATH') or define('LOG_PATH', RUNTIME_PATH . 'log' . DS);
 defined('CACHE_PATH') or define('CACHE_PATH', RUNTIME_PATH . 'cache' . DS);
 defined('TEMP_PATH') or define('TEMP_PATH', RUNTIME_PATH . 'temp' . DS);
