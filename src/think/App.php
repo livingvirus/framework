@@ -35,15 +35,7 @@ class App
         Config::load(THINK_PATH . 'config' . EXT);
         // 初始化应用（公共模块） 初始化变量配置
         self::initModule(COMMON_MODULE, Config::get());
-        // 加载额外文件
-        if (!empty($config['extra_file_list'])) {
-            foreach ($config['extra_file_list'] as $file) {
-                $file = strpos($file, '.') ? $file : APP_PATH . $file . EXT;
-                if (is_file($file)) {
-                    include_once $file;
-                }
-            }
-        }
+
         // 获取配置参数
         $config = Config::get();
         // 设置系统时区
@@ -162,38 +154,31 @@ class App
     // 执行 模块/控制器/操作
     private static function module($result, $config)
     {
-        if (APP_MULTI_MODULE) {
-            // 多模块部署
-            $module = strtolower($result[0] ?: $config['default_module']);
-            if ($maps = $config['url_module_map']) {
-                if (isset($maps[$module])) {
-                    // 记录当前别名
-                    define('MODULE_ALIAS', $module);
-                    // 获取实际的项目名
-                    $module = $maps[MODULE_ALIAS];
-                } elseif (array_search($module, $maps)) {
-                    // 禁止访问原始项目
-                    $module = '';
-                }
+        // 多模块部署
+        $module = strtolower($result[0] ?: $config['default_module']);
+        if ($maps = $config['url_module_map']) {
+            if (isset($maps[$module])) {
+                // 记录当前别名
+                define('MODULE_ALIAS', $module);
+                // 获取实际的项目名
+                $module = $maps[MODULE_ALIAS];
+            } elseif (array_search($module, $maps)) {
+                // 禁止访问原始项目
+                $module = '';
             }
-            // 获取模块名称
-            define('MODULE_NAME', strip_tags($module));
+        }
+        // 获取模块名称
+        define('MODULE_NAME', strip_tags($module));
 
-            // 模块初始化
-            if (MODULE_NAME && !in_array(MODULE_NAME, $config['deny_module_list']) && is_dir(APP_PATH . MODULE_NAME)) {
-                APP_HOOK && Hook::listen('app_begin');
-                define('MODULE_PATH', APP_PATH . MODULE_NAME . DS);
-                define('VIEW_PATH', MODULE_PATH . VIEW_LAYER . DS);
-                // 初始化模块
-                self::initModule(MODULE_NAME, $config);
-            } else {
-                throw new Exception('module [ ' . MODULE_NAME . ' ] not exists ', 10005);
-            }
-        } else {
-            // 单一模块部署
-            define('MODULE_NAME', '');
-            define('MODULE_PATH', APP_PATH);
+        // 模块初始化
+        if (MODULE_NAME && !in_array(MODULE_NAME, $config['deny_module_list']) && is_dir(APP_PATH . MODULE_NAME)) {
+            APP_HOOK && Hook::listen('app_begin');
+            define('MODULE_PATH', APP_PATH . MODULE_NAME . DS);
             define('VIEW_PATH', MODULE_PATH . VIEW_LAYER . DS);
+            // 初始化模块
+            self::initModule(MODULE_NAME, $config);
+        } else {
+            throw new Exception('module [ ' . MODULE_NAME . ' ] not exists ', 10005);
         }
 
         // 获取控制器名
@@ -265,21 +250,22 @@ class App
     private static function initModule($module, $config)
     {
         // 定位模块目录
-        $module = (COMMON_MODULE == $module || !APP_MULTI_MODULE) ? '' : $module . DS;
-
+        $module = (COMMON_MODULE == $module) ? '' : $module . DS;
         // 加载初始化文件
         if (is_file(APP_PATH . $module . 'init' . EXT)) {
             include APP_PATH . $module . 'init' . EXT;
         } else {
             $path = APP_PATH . $module;
             // 加载模块配置
-            Config::load(APP_PATH . $module . 'config' . EXT);
+            $config = Config::load(APP_PATH . $module . 'config' . EXT);
 
-            // 加载公共文件
-            if (is_file($path . 'common' . EXT)) {
-                include $path . 'common' . EXT;
+            // 读取扩展配置文件
+            if ($config['extra_config_list']) {
+                foreach ($config['extra_config_list'] as $name => $file) {
+                    $filename = $path . $file . EXT;
+                    Config::load($filename, is_string($name) ? $name : pathinfo($filename, PATHINFO_FILENAME));
+                }
             }
-
             // 加载当前模块语言包
             if ($config['lang_switch_on'] && $module) {
                 Lang::load($path . 'lang' . DS . LANG_SET . EXT);
