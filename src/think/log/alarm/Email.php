@@ -30,11 +30,11 @@ class Email
      * 通知发送接口
      * @access public
      * @param string $msg 日志信息
-     * @return bool
+     * @return void
      */
     public function send($msg = '')
     {
-        return error_log($msg, 1, $this->config['address']);
+        error_log($msg, 1, $this->config['address']);
     }
 
 }

@@ -31,7 +31,9 @@ class Apc
      ******************************/
     /**
      * 架构函数
+     *
      * @param array $options 缓存参数
+     *
      * @throws Exception
      * @access public
      */
@@ -95,10 +97,11 @@ class Apc
         return $result;
     }
 
-    /**
-     * 删除缓存
+    /**删除缓存
      * @access public
+     *
      * @param string $name 缓存变量名
+     *
      * @return bool|\string[]
      */
     public function rm($name)

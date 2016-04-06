@@ -125,39 +125,7 @@ function R($url, $vars = [], $layer = CONTROLLER_LAYER)
     return \think\Loader::action($url, $vars, $layer);
 }
 
-/**
- * 导入所需的类库 同java的Import 本函数有缓存功能
- * @param string $class 类库命名空间字符串
- * @param string $baseUrl 起始路径
- * @param string $ext 导入的文件扩展名
- * @return boolean
- */
-function import($class, $baseUrl = '', $ext = EXT)
-{
-    return \think\Loader::import($class, $baseUrl, $ext);
-}
 
-/**
- * 快速导入第三方框架类库 所有第三方框架的类库文件统一放到 系统的Vendor目录下面
- * @param string $class 类库
- * @param string $ext 类库后缀
- * @return boolean
- */
-function vendor($class, $ext = EXT)
-{
-    return \think\Loader::import($class, VENDOR_PATH, $ext);
-}
-
-/**
- * 快速导入Traits
- * @param string $class trait库
- * @param string $ext 类库后缀
- * @return boolean
- */
-function T($class, $ext = EXT)
-{
-    return \think\Loader::import($class, TRAIT_PATH, $ext);
-}
 
 /**
  * 抛出异常处理

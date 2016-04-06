@@ -30,51 +30,22 @@ class App
     {
         //Loader::register();
         // 注册错误和异常处理机制 以及初始化配置
-        
+
         register_shutdown_function('\think\Error::appShutdown');
         set_error_handler('\think\Error::appError');
-        set_exception_handler('\think\Error::appException');;
-        Config::load(THINK_PATH. 'config' . EXT);
-        // 初始化应用（公共模块）
+        set_exception_handler('\think\Error::appException');
+        Config::load(THINK_PATH . 'config' . EXT);
+        // 初始化应用（公共模块） 初始化变量配置
         self::initModule(COMMON_MODULE, Config::get());
-
-        // 读取扩展配置文件
-        if (Config::get('extra_config_list')) {
-            foreach (Config::get('extra_config_list') as $name => $file) {
-                $file = strpos($file, '.') ? $file : APP_PATH . $file . EXT;
-                Config::load($file, is_string($name) ? $name : pathinfo($file, PATHINFO_FILENAME));
-            }
-        }
 
         // 获取配置参数
         $config = Config::get();
-
-        // 加载额外文件
-        // if (!empty($config['extra_file_list'])) {
-        //     foreach ($config['extra_file_list'] as $file) {
-        //         $file = strpos($file, '.') ? $file : APP_PATH . $file . EXT;
-        //         if (is_file($file)) {
-        //             include_once $file;
-        //         }
-        //     }
-        // }
-
         // 设置系统时区
         date_default_timezone_set($config['default_timezone']);
 
         // 监听app_init
         APP_HOOK && Hook::listen('app_init');
-
         // 开启多语言机制
-        if ($config['lang_switch_on']) {
-            // 获取当前语言
-            defined('LANG_SET') or define('LANG_SET', Lang::range());
-            // 加载系统语言包
-            Lang::load(THINK_PATH . 'lang' . DS . LANG_SET . EXT);
-            if (!APP_MULTI_MODULE) {
-                Lang::load(APP_PATH . 'lang' . DS . LANG_SET . EXT);
-            }
-        }
 
         // 启动session CLI 不开启
         if (!IS_CLI && $config['use_session']) {

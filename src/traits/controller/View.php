@@ -2,7 +2,7 @@
 
 /**
  * 用法：
- * T('controller/View');
+ *
  * class index
  * {
  *     use \traits\controller\View;

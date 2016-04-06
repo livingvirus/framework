@@ -30,7 +30,6 @@ class Redis
         'expire'     => false,
         'persistent' => false,
         'length'     => 0,
-        'prefix'     => '',
     ];
 
     /**
@@ -65,10 +64,7 @@ class Redis
     public function get($name)
     {
         Cache::$readTimes++;
-        $value = $this->handler->get($this->options['prefix'] . $name);
-        $jsonData  = json_decode( $value, true );
-        // 检测是否为JSON数据 true 返回JSON解析数组, false返回源数据 byron sampson<xiaobo.sun@qq.com>
-        return ($jsonData === null) ? $value : $jsonData;
+        return $this->handler->get($this->options['prefix'] . $name);
     }
 
     /**
@@ -86,8 +82,6 @@ class Redis
             $expire = $this->options['expire'];
         }
         $name = $this->options['prefix'] . $name;
-        //对数组/对象数据进行缓存处理，保证数据完整性  byron sampson<xiaobo.sun@qq.com>
-        $value  =  (is_object($value) || is_array($value)) ? json_encode($value) : $value;
         if (is_int($expire)) {
             $result = $this->handler->setex($name, $expire, $value);
         } else {
@@ -97,7 +91,9 @@ class Redis
             if ($this->options['length'] > 0) {
                 // 记录缓存队列
                 $queue = $this->handler->get('__info__');
-                $queue = explode(',', $queue);
+                if (!$queue) {
+                    $queue = [];
+                }
                 if (false === array_search($name, $queue)) {
                     array_push($queue, $name);
                 }
@@ -108,7 +104,7 @@ class Redis
                     // 删除缓存
                     $this->handler->delete($key);
                 }
-                $this->handler->set('__info__', implode(',', $queue));
+                $this->handler->set('__info__', $queue);
             }
         }
         return $result;

@@ -11,8 +11,6 @@
 
 namespace think\model;
 
-T('model/Adv');
-T('model/Transaction');
 
 class Adv extends \think\Model
 {

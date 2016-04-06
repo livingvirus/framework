@@ -10,8 +10,6 @@
 // +----------------------------------------------------------------------
 
 namespace think\model;
-
-T('model/Relation');
 class Relation extends \think\Model
 {
     use \traits\model\Relation;

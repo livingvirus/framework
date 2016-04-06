@@ -11,6 +11,7 @@
 
 namespace think\console\command;
 
+
 use think\console\Input;
 use think\console\input\Option;
 use think\console\Output;
@@ -24,7 +25,7 @@ class Build extends Command
     protected function configure()
     {
         $this->setName('build')
-             ->setDefinition([new Option('config', null, Option::VALUE_OPTIONAL, "build.php path", APP_PATH . 'build.php')])
+             ->setDefinition([new Option('config', null, Option::VALUE_OPTIONAL, "build.php path")])
              ->setDescription('Build Application Dirs');
     }
 

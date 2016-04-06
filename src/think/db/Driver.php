@@ -15,9 +15,7 @@ use PDO;
 use think\Config;
 use think\Db;
 use think\Debug;
-use think\exception\DbBindParamException;
-use think\exception\DbException;
-use think\exception\PDOException;
+use think\Exception;
 use think\Log;
 
 abstract class Driver
@@ -62,6 +60,8 @@ abstract class Driver
         'charset'        => 'utf8',
         // 数据库表前缀
         'prefix'         => '',
+        // 数据库调试模式
+        'debug'          => false,
         // 数据库部署方式:0 集中式(单一服务器),1 分布式(主从服务器)
         'deploy'         => 0,
         // 数据库读写是否分离 主从式有效
@@ -130,7 +130,7 @@ abstract class Driver
                     Log::record($e->getMessage(), 'error');
                     return $this->connect($autoConnection, $linkNum);
                 } else {
-                    throw new PDOException($e, $this->config, $this->queryStr);
+                    throw new Exception($e->getMessage());
                 }
             }
         }
@@ -197,7 +197,7 @@ abstract class Driver
             $this->debug(false);
             return $this->getResult();
         } catch (\PDOException $e) {
-            throw new PDOException($e, $this->config, $this->queryStr);
+            throw new Exception($this->getError());
         }
     }
 
@@ -247,7 +247,7 @@ abstract class Driver
             }
             return $this->numRows;
         } catch (\PDOException $e) {
-            throw new PDOException($e, $this->config, $this->queryStr);
+            throw new Exception($this->getError());
         }
     }
 
@@ -266,7 +266,7 @@ abstract class Driver
                 // 判断占位符
                 $sql = is_numeric($key) ?
                 substr_replace($sql, $val, strpos($sql, '?'), 1) :
-                str_replace(':' . $key . ' ', $val . ' ', $sql . ' ');
+                str_replace(':' . $key, $val, $sql);
             }
         }
         return $sql;
@@ -292,12 +292,7 @@ abstract class Driver
                 $result = $this->PDOStatement->bindValue($param, $val);
             }
             if (!$result) {
-                throw new DbBindParamException(
-                    "Error occurred  when binding parameters '{$param}'",
-                    $this->config,
-                    $this->queryStr,
-                    $bind
-                );
+                throw new Exception('bind param error : [ ' . $param . '=>' . $val . ' ]');
             }
         }
     }
@@ -335,7 +330,7 @@ abstract class Driver
                 $this->linkID->commit();
                 $this->transTimes = 0;
             } catch (\PDOException $e) {
-                throw new PDOException($e, $this->config, $this->queryStr);
+                throw new Exception($e->getMessage());
             }
         }
         return true;
@@ -354,7 +349,7 @@ abstract class Driver
                 $this->linkID->rollback();
                 $this->transTimes = 0;
             } catch (\PDOException $e) {
-                throw new PDOException($e, $this->config, $this->queryStr);
+                throw new Exception($e->getMessage());
             }
         }
         return true;
@@ -662,13 +657,13 @@ abstract class Driver
                     $data = is_string($val[1]) ? explode(',', $val[1]) : $val[1];
                     $whereStr .= $key . ' ' . $this->exp[$exp] . ' ' . $this->parseValue($data[0]) . ' AND ' . $this->parseValue($data[1]);
                 } else {
-                    throw new DbException("The WHERE express error: {$val[0]}", $this->config, '', 10503);
+                    throw new Exception('where express error:' . $val[0]);
                 }
             } else {
                 $count = count($val);
                 $rule  = isset($val[$count - 1]) ? (is_array($val[$count - 1]) ? strtoupper($val[$count - 1][0]) : strtoupper($val[$count - 1])) : '';
                 if (in_array($rule, ['AND', 'OR', 'XOR'])) {
-                    --$count;
+                    $count = $count - 1;
                 } else {
                     $rule = 'AND';
                 }
@@ -925,51 +920,6 @@ abstract class Driver
     }
 
     /**
-     * 批量更新某字段
-     * @access public
-     * @param mixed $field 字段名
-     * @param mixed $pk 主键名
-     * @param mixed $dataSet 数据集
-     * @param mixed $operator 运算符
-     * @param array $options 参数表达式
-     **/
-    public function updateFieldAll($field, $pk, $dataSet, $operator = '=', $options = [])
-    {
-        $values     = [];
-        $this->bind = array_merge($this->bind, !empty($options['bind']) ? $options['bind'] : []);
-        $field      = $this->parseKey($field);
-        $pk         = $this->parseKey($pk);
-        if (in_array($operator, ['+', '-'])) {
-            $operator = '= ' . $field . $operator;
-        }
-
-        $value = '';
-        foreach ($dataSet as $key => $val) {
-            if (is_array($val) && 'exp' == $val[0]) {
-                $value = $val[1];
-            } elseif (is_null($val)) {
-                $value = 'NULL';
-            } elseif (is_scalar($val)) {
-                if (0 === strpos($val, ':') && isset($this->bind[substr($val, 1)])) {
-                    $value = $val;
-                } else {
-                    $name  = count($this->bind);
-                    $value = ':' . $_SERVER['REQUEST_TIME'] . '_' . $name;
-                    $this->bindParam($_SERVER['REQUEST_TIME'] . '_' . $name, $val);
-                }
-            }
-            //没使用过非数字主键,怎么处理比较合适?
-            $values[] = " WHEN " . $key . " THEN " . $value;
-        }
-
-        $sql = 'UPDATE ' . $this->parseTable($options['table']) . ' SET ' . $field . $operator . ' CASE ' . $pk . implode(' ', $values) . ' END ';
-        //查询条件需和WHEN THEN对一致
-        $sql .= ' WHERE ' . $pk . ' in (' . implode(',', array_map([$this, 'parseValue'], array_keys($dataSet))) . ')';
-        $sql .= $this->parseComment(!empty($options['comment']) ? $options['comment'] : '');
-        return $this->execute($sql, $this->getBindParams(true), !empty($options['fetch_sql']) ? true : false);
-    }
-
-    /**
      * 批量插入记录
      * @access public
      * @param mixed $dataSet 数据集
@@ -1005,7 +955,7 @@ abstract class Driver
             }
             $values[] = 'SELECT ' . implode(',', $value);
         }
-        $sql = (true === $replace ? 'REPLACE' : 'INSERT') . ' INTO ' . $this->parseTable($options['table']) . ' (' . implode(',', $fields) . ') ' . implode(' UNION ALL ', $values);
+        $sql = 'INSERT INTO ' . $this->parseTable($options['table']) . ' (' . implode(',', $fields) . ') ' . implode(' UNION ALL ', $values);
         $sql .= $this->parseComment(!empty($options['comment']) ? $options['comment'] : '');
         return $this->execute($sql, $this->getBindParams(true), !empty($options['fetch_sql']) ? true : false);
     }
@@ -1159,7 +1109,7 @@ abstract class Driver
      */
     public function getLastSql($model = '')
     {
-        return ($model && isset($this->modelSql[$model])) ? $this->modelSql[$model] : $this->queryStr;
+        return $model ? $this->modelSql[$model] : $this->queryStr;
     }
 
     /**
@@ -1185,11 +1135,9 @@ abstract class Driver
         } else {
             $error = '';
         }
-
         if ('' != $this->queryStr) {
             $error .= "\n [ SQL语句 ] : " . $this->queryStr;
         }
-
         return $error;
     }
 
@@ -1234,8 +1182,12 @@ abstract class Driver
                 $log = $this->queryStr . ' [ RunTime:' . Debug::getRangeTime('queryStartTime', 'queryEndTime') . 's ]';
                 // SQL性能分析
                 if (0 === stripos(trim($this->queryStr), 'select')) {
-                    $result = $this->getExplain($this->queryStr);
-                    Log::record('[ EXPLAIN : ' . var_export($result, true) . ' ]', 'sql');
+                    $pdo    = $this->linkID->query("EXPLAIN " . $this->queryStr);
+                    $result = $pdo->fetch(PDO::FETCH_ASSOC);
+                    if (strpos($result['extra'], 'filesort') || strpos($result['extra'], 'temporary')) {
+                        Log::record('SQL:' . $this->queryStr . '[' . $result['extra'] . ']', 'warn');
+                    }
+                    $log .= '[ EXPLAIN : ' . var_export($result, true) . ' ]';
                 }
                 Log::record('[ SQL ] ' . $log, 'sql');
             }

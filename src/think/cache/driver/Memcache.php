@@ -24,7 +24,6 @@ class Memcache
         'timeout'    => 0, // 超时时间（单位：毫秒）
         'persistent' => true,
         'length'     => 0,
-        'prefix'     => '',
     ];
 
     /**
@@ -52,8 +51,8 @@ class Memcache
         foreach ((array) $hosts as $i => $host) {
             $port = isset($ports[$i]) ? $ports[$i] : $ports[0];
             $this->options['timeout'] > 0 ?
-            $this->handler->addServer($host, $port, $this->options['persistent'], 1, $this->options['timeout']) :
-            $this->handler->addServer($host, $port, $this->options['persistent'], 1);
+            $this->handler->addServer($host, $port, $this->options['persistent'], 1) : 
+            $this->handler->addServer($host, $port, $this->options['persistent'], 1, $this->options['timeout']);
         }
     }
 
@@ -110,8 +109,10 @@ class Memcache
 
     /**
      * 删除缓存
+     *
      * @param    string  $name 缓存变量名
      * @param bool|false $ttl
+     *
      * @return bool
      */
     public function rm($name, $ttl = false)

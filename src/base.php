@@ -16,15 +16,8 @@ define('START_MEM', memory_get_usage());
 define('THINK_VERSION', '5.0.0 RC1');
 // 系统常量
 defined('DS') or define('DS', DIRECTORY_SEPARATOR);
-// defined('THINK_PATH') or define('THINK_PATH', dirname(__FILE__) . DS);
-// defined('LIB_PATH') or define('LIB_PATH', THINK_PATH . 'library' . DS);
 defined('THINK_PATH') or define('THINK_PATH', dirname(__FILE__) . DS);
 defined('LIB_PATH') or define('LIB_PATH', THINK_PATH);
-defined('EXTEND_PATH') or define('EXTEND_PATH', THINK_PATH . 'extend' . DS);
-defined('MODE_PATH') or define('MODE_PATH', THINK_PATH ); // 系统应用模式目录
-defined('CORE_PATH') or define('CORE_PATH', THINK_PATH);
-defined('ORG_PATH') or define('ORG_PATH', LIB_PATH . 'org' . DS);
-defined('TRAIT_PATH') or define('TRAIT_PATH', LIB_PATH . 'traits' . DS);
 defined('APP_PATH') or define('APP_PATH', dirname($_SERVER['SCRIPT_FILENAME']) . DS);
 defined('APP_NAMESPACE') or define('APP_NAMESPACE', 'app');
 defined('COMMON_MODULE') or define('COMMON_MODULE', 'common');
@@ -43,11 +36,6 @@ defined('APP_DEBUG') or define('APP_DEBUG', false); // 是否调试模式
 defined('APP_HOOK') or define('APP_HOOK', false); // 是否开启HOOK
 defined('ENV_PREFIX') or define('ENV_PREFIX', 'T_'); // 环境变量的配置前缀
 defined('IS_API') or define('IS_API', false); // 是否API接口
-defined('APP_AUTO_BUILD') or define('APP_AUTO_BUILD', false); // 是否自动生成应用模块
-defined('APP_AUTO_RUN') or define('APP_AUTO_RUN', false); // 是否自动运行
-
-// 应用模式 默认为普通模式
-defined('APP_MODE') or define('APP_MODE', function_exists('saeAutoLoader') ? 'sae' : 'common');
 
 // 环境常量
 define('IS_CGI', strpos(PHP_SAPI, 'cgi') === 0 ? 1 : 0);

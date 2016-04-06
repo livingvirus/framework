@@ -47,7 +47,6 @@ class Cx extends Taglib
         'assign'     => ['attr' => 'name,value', 'close' => 0],
         'define'     => ['attr' => 'name,value', 'close' => 0],
         'for'        => ['attr' => 'start,end,name,comparison,step'],
-        'url'        => ['attr' => 'link,vars,suffix,domain', 'close' => 0, 'expression' => true],
     ];
 
     /**
@@ -77,11 +76,11 @@ class Cx extends Taglib
      */
     public function _volist($tag, $content)
     {
-        $name   = $tag['name'];
-        $id     = $tag['id'];
-        $empty  = isset($tag['empty']) ? $tag['empty'] : '';
-        $key    = !empty($tag['key']) ? $tag['key'] : 'i';
-        $mod    = isset($tag['mod']) ? $tag['mod'] : '2';
+        $name  = $tag['name'];
+        $id    = $tag['id'];
+        $empty = isset($tag['empty']) ? $tag['empty'] : '';
+        $key   = !empty($tag['key']) ? $tag['key'] : 'i';
+        $mod   = isset($tag['mod']) ? $tag['mod'] : '2';
         $offset = !empty($tag['offset']) && is_numeric($tag['offset']) ? intval($tag['offset']) : 0;
         $length = !empty($tag['length']) && is_numeric($tag['length']) ? intval($tag['length']) : 'null';
         // 允许使用函数设定数据集 <volist name=":fun('arg')" id="vo">{$vo.name}</volist>
@@ -97,7 +96,7 @@ class Cx extends Taglib
         $parseStr .= 'if(is_array(' . $name . ')): $' . $key . ' = 0;';
         // 设置了输出数组长度
         if (0 != $offset || 'null' != $length) {
-            $parseStr .= '$__LIST__ = array_slice(' . $name . ',' . $offset . ',' . $length . ', true); ';
+            $parseStr .=  '$__LIST__ = array_slice(' . $name . ',' . $offset . ',' . $length . ', true); ';
         } else {
             $parseStr .= ' $__LIST__ = ' . $name . ';';
         }
@@ -567,7 +566,7 @@ class Cx extends Taglib
         } else {
             // 命名空间导入模式 默认是js
             $type     = $type ? $type : (!empty($tag['type']) ? strtolower($tag['type']) : 'js');
-            $basepath = !empty($tag['basepath']) ? $tag['basepath'] : '/Public';
+            $basepath = !empty($tag['basepath']) ? $tag['basepath'] : __ROOT__ . '/Public';
             // 命名空间方式导入外部文件
             $array = explode(',', $file);
             foreach ($array as $val) {
@@ -703,22 +702,5 @@ class Cx extends Taglib
         $parseStr .= $content;
         $parseStr .= '<?php } ?>';
         return $parseStr;
-    }
-
-    /**
-     * U函数的tag标签
-     * 格式：<url link="模块/控制器/方法" vars="参数" suffix="true或者false 是否带有后缀" domain="true或者false 是否携带域名" />
-     * @access public
-     * @param array $tag 标签属性
-     * @param string $content 标签内容
-     * @return string
-     */
-    public function _url($tag, $content)
-    {
-        $url    = isset($tag['link']) ? $tag['link'] : '';
-        $vars   = isset($tag['vars']) ? $tag['vars'] : '';
-        $suffix = isset($tag['suffix']) ? $tag['suffix'] : 'true';
-        $domain = isset($tag['domain']) ? $tag['domain'] : 'false';
-        return '<?php echo U("' . $url . '","' . $vars . '",' . $suffix . ',' . $domain . ');?>';
     }
 }

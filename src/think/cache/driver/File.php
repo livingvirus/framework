@@ -26,7 +26,7 @@ class File
         'path_level'    => 1,
         'prefix'        => '',
         'length'        => 0,
-        'path'          => CACHE_PATH,
+        'path'          => LOG_PATH,
         'data_compress' => false,
     ];
 
@@ -104,7 +104,7 @@ class File
             $expire = (int) substr($content, 8, 12);
             if (0 != $expire && time() > filemtime($filename) + $expire) {
                 //缓存过期删除缓存文件
-                $this->unlink($filename);
+                unlink($filename);
                 return false;
             }
             $content = substr($content, 20, -3);
@@ -157,7 +157,7 @@ class File
                     // 出列
                     $key = array_shift($queue);
                     // 删除缓存
-                    $this->unlink($this->filename($key));
+                    unlink($this->filename($key));
                 }
                 file_put_contents($queue_file, serialize($queue));
             }
@@ -176,39 +176,28 @@ class File
      */
     public function rm($name)
     {
-        return $this->unlink($this->filename($name));
+        return unlink($this->filename($name));
     }
 
     /**
      * 清除缓存
      * @access public
+     * @param string $name 缓存变量名
      * @return boolean
      */
     public function clear()
     {
-        $path = $this->options['path'];
+        $path = $this->options['temp'];
         if ($dir = opendir($path)) {
             while ($file = readdir($dir)) {
                 $check = is_dir($file);
                 if (!$check) {
-                    $this->unlink($path . $file);
+                    unlink($path . $file);
                 }
 
             }
             closedir($dir);
             return true;
         }
-    }
-
-    /**
-     * 判断文件是否存在后，删除
-     * @param $path
-     * @return bool
-     * @author byron sampson <xiaobo.sun@qq.com>
-     * @return boolean
-     */
-    private function unlink($path)
-    {
-        return is_file($path) && unlink($path);
     }
 }

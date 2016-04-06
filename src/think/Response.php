@@ -43,7 +43,7 @@ class Response
             'text'   => 'text/plain',
         ];
 
-        if (!headers_sent() && !headers_list() && isset($headers[$type])) {
+        if (!headers_sent() && isset($headers[$type])) {
             header('Content-Type:' . $headers[$type] . '; charset=utf-8');
         }
 
@@ -135,7 +135,7 @@ class Response
      * @access public
      * @param mixed $data 要返回的数据
      * @param integer $code 返回的code
-     * @param string $msg 提示信息
+     * @param mixed $msg 提示信息
      * @param string $type 返回数据格式
      * @return mixed
      */
@@ -159,11 +159,11 @@ class Response
      * @access public
      * @param mixed $msg 提示信息
      * @param mixed $data 返回的数据
-     * @param string $url 跳转的URL地址
-     * @param integer $wait 跳转等待时间
+     * @param mixed $url 跳转的URL地址
+     * @param mixed $wait 跳转等待时间
      * @return mixed
      */
-    public static function success($msg = '', $data = '', $url = null, $wait = 3)
+    public static function success($msg = '', $data = '', $url = '', $wait = 3)
     {
         $code = 1;
         if (is_numeric($msg)) {
@@ -174,14 +174,14 @@ class Response
             'code' => $code,
             'msg'  => $msg,
             'data' => $data,
-            'url'  => is_null($url) ? $_SERVER["HTTP_REFERER"] : $url,
+            'url'  => $url ?: $_SERVER["HTTP_REFERER"],
             'wait' => $wait,
         ];
 
         $type = IS_AJAX ? Config::get('default_ajax_return') : Config::get('default_return_type');
 
         if ('html' == $type) {
-            $result = \think\View::instance()->fetch(Config::get('dispatch_success_tmpl'), $result);
+            $result = \think\View::instance()->fetch(Config::get('dispatch_jump_tmpl'), $result);
         }
         self::type($type);
         return $result;
@@ -192,11 +192,11 @@ class Response
      * @access public
      * @param mixed $msg 提示信息
      * @param mixed $data 返回的数据
-     * @param string $url 跳转的URL地址
-     * @param integer $wait 跳转等待时间
+     * @param mixed $url 跳转的URL地址
+     * @param mixed $wait 跳转等待时间
      * @return mixed
      */
-    public static function error($msg = '', $data = '', $url = null, $wait = 3)
+    public static function error($msg = '', $data = '', $url = '', $wait = 3)
     {
         $code = 0;
         if (is_numeric($msg)) {
@@ -207,14 +207,14 @@ class Response
             'code' => $code,
             'msg'  => $msg,
             'data' => $data,
-            'url'  => is_null($url) ? 'javascript:history.back(-1);' : $url,
+            'url'  => $url ?: 'javascript:history.back(-1);',
             'wait' => $wait,
         ];
 
         $type = IS_AJAX ? Config::get('default_ajax_return') : Config::get('default_return_type');
 
         if ('html' == $type) {
-            $result = \think\View::instance()->fetch(Config::get('dispatch_error_tmpl'), $result);
+            $result = \think\View::instance()->fetch(Config::get('dispatch_jump_tmpl'), $result);
         }
         self::type($type);
         return $result;
@@ -230,7 +230,7 @@ class Response
     public static function redirect($url, $params = [])
     {
         $http_response_code = 301;
-        if (is_int($params) && in_array($params, [301, 302])) {
+        if (in_array($params, [301, 302])) {
             $http_response_code = $params;
             $params             = [];
         }

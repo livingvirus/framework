@@ -13,8 +13,6 @@ namespace think\model;
 use think\Lang;
 use think\Loader;
 
-T('modle/Adv');
-
 /**
  * MongoModel模型类
  * 实现了ODM和ActiveRecords模式
