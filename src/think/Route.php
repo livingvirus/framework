@@ -674,7 +674,7 @@ class Route
     {
         if ($url) {
             preg_replace_callback('/(\w+)\/([^\/]+)/', function ($match) use (&$var) {
-                $var[strtolower($match[1])] = strip_tags($match[2]);
+                $var[$match[1]] = strip_tags($match[2]);
             }, $url);
         }
         $_GET = array_merge($var, $_GET);
