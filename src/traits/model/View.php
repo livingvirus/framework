@@ -40,7 +40,7 @@ trait View
                     $tableName .= $view['_table'];
                 } else {
                     $class = $key . 'Model';
-                    $model = class_exists($class) ? new $class() : \think\Loader::table($key,['prefix' => '', 'connection' => '']);
+                    $model = class_exists($class) ? new $class() :new \think\Model($key,['prefix' => '', 'connection' => '']);
                     $tableName .= $model->getTableName();
                 }
                 // 表别名定义
@@ -93,7 +93,7 @@ trait View
     {
         if (false !== $pos = array_search('*', $fields)) {
             // 定义所有字段
-            $fields = array_merge($fields, \think\Loader::table($name,['prefix' => '', 'connection' => ''])->getDbFields());
+            $fields = array_merge($fields, new \think\Model($name,['prefix' => '', 'connection' => ''])->getDbFields());
             unset($fields[$pos]);
         }
         return $fields;

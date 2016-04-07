@@ -7,8 +7,7 @@
     "license": "Apache2",
     "authors": [
         {
-            "name": "livingvirus",
-            "email": "livingviruskang@gmail.com"
+            "name": "livingvirus"
         }
     ],
     "require": {

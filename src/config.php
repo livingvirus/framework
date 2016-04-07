@@ -91,7 +91,7 @@ return [
     'dispatch_success_tmpl'  => THINK_PATH . 'tpl' . DS . 'dispatch_jump.tpl',
     'dispatch_error_tmpl'    => THINK_PATH . 'tpl' . DS . 'dispatch_jump.tpl',
     // 默认的模板引擎
-    'template_engine'        => 'Think',
+    'template_engine'        => 'PHP',
 
     // +----------------------------------------------------------------------
     // | 异常及错误设置
@@ -146,7 +146,7 @@ return [
     // +----------------------------------------------------------------------
 
     'db_fields_strict'       => true,
-    'db_attr_case'           => \PDO::CASE_LOWER,
+    'db_attr_case'           => \PDO::CASE_NATURAL,
     'database'               => [
         // 数据库类型
         'type'        => 'mysql',

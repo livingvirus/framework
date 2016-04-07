@@ -105,7 +105,7 @@ class Error
             } else {
                 $e = $error;
             }
-        } else {
+        } else if (1) {
             //否则定向到错误页面
             $error_page = Config::get('error_page');
             if (!empty($error_page)) {

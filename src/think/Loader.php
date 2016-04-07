@@ -26,27 +26,6 @@ class Loader
     private static $prefixesPsr0 = [];
 
     /**
-     * 实例化一个没有模型文件的Model（对应数据表）
-     * @param string $name Model名称 支持指定基础模型 例如 MongoModel:User
-     * @param array $options 模型参数
-     * @return Model
-     */
-    public static function table($name = '', array $options = [])
-    {
-        static $_model = [];
-        if (strpos($name, ':')) {
-            list($class, $name) = explode(':', $name);
-        } else {
-            $class = 'think\\Model';
-        }
-        $guid = $name . '_' . $class;
-        if (!isset($_model[$guid])) {
-            $_model[$guid] = new $class($name, $options);
-        }
-        return $_model[$guid];
-    }
-
-    /**
      * 实例化（分层）模型
      * @param string $name Model名称
      * @param string $layer 业务层名称
@@ -83,45 +62,6 @@ class Loader
         return $model;
     }
 
-    
-    /**
-     * 实例化数据库
-     * @param mixed $config 数据库配置
-     * @return object
-     */
-    public static function db($config = [])
-    {
-        return Db::connect($config);
-    }
-
-    /**
-     * 取得对象实例 支持调用类的静态方法
-     *
-     * @param string $class  对象类名
-     * @param string $method 类的静态方法名
-     *
-     * @return mixed
-     * @throws Exception
-     */
-    public static function instance($class, $method = '')
-    {
-        static $_instance = [];
-        $identify         = $class . $method;
-        if (!isset($_instance[$identify])) {
-            if (class_exists($class)) {
-                $o = new $class();
-                if (!empty($method) && method_exists($o, $method)) {
-                    $_instance[$identify] = call_user_func_array([ & $o, $method], []);
-                } else {
-                    $_instance[$identify] = $o;
-                }
-            } else {
-                throw new Exception('class not exist :' . $class, 10007);
-            }
-        }
-        return $_instance[$identify];
-    }
-
     /**
      * 字符串命名风格转换
      * type 0 将Java风格转换为C的风格 1 将C风格转换为Java的风格
@@ -151,6 +91,6 @@ class Loader
         $array = explode('\\', $name);
         $class = self::parseName(array_pop($array), 1);
         $path  = $array ? implode('\\', $array) . '\\' : '';
-        return APP_NAMESPACE . '\\' .  $module . '\\'  . $layer . '\\' . $path . $class;
+        return APP_NAMESPACE . '\\' . $module . '\\' . $layer . '\\' . $path . $class;
     }
 }

@@ -73,7 +73,6 @@ class Config
     public static function has($name, $range = '')
     {
         $range = $range ?: self::$range;
-        $name  = strtolower($name);
 
         if (!strpos($name, '.')) {
             return isset(self::$config[$range][$name]);
@@ -98,7 +97,6 @@ class Config
         if (empty($name) && isset(self::$config[$range])) {
             return self::$config[$range];
         }
-        $name = strtolower($name);
         if (!strpos($name, '.')) {
             // 判断环境变量
             if (isset($_ENV[ENV_PREFIX . $name])) {
@@ -131,7 +129,6 @@ class Config
             self::$config[$range] = [];
         }
         if (is_string($name)) {
-            $name = strtolower($name);
             if (!strpos($name, '.')) {
                 self::$config[$range][$name] = $value;
             } else {

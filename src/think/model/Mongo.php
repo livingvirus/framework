@@ -302,7 +302,7 @@ class Mongo extends \think\Model
             } else {
                 $tableName .= Loader::parseName($this->name);
             }
-            $this->trueTableName = strtolower($tableName);
+            $this->trueTableName = $tableName;
         }
         return $this->trueTableName;
     }
