@@ -262,7 +262,7 @@ trait Relation
                         $mappingCondition[$mappingFk] = $pk;
                     }
                     // 获取关联model对象
-                    $model       = \think\Loader::model($mappingClass);
+                    $model       = $mappingClass;
                     $mappingData = isset($data[$mappingName]) ? $data[$mappingName] : false;
                     if (!empty($mappingData) || 'DEL' == $opType) {
                         switch ($mappingType) {
@@ -389,7 +389,7 @@ trait Relation
                         continue; // 自引用关联或提交关联数据跳过
                     }
                     // 获取关联model对象
-                    $model = \think\Loader::model($mappingClass);
+                    $model = $mappingClass;
                     $_data = $data[$mappingName];
                     unset($data[$key]);
                     if ($_data = $model->token(false)->create($_data)) {

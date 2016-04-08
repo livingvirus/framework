@@ -99,16 +99,16 @@ class Config
         }
         if (!strpos($name, '.')) {
             // 判断环境变量
-            if (isset($_ENV[ENV_PREFIX . $name])) {
-                return $_ENV[ENV_PREFIX . $name];
+            if (isset($_ENV['T_' . $name])) {
+                return $_ENV['T_'  . $name];
             }
             return isset(self::$config[$range][$name]) ? self::$config[$range][$name] : null;
         } else {
             // 二维数组设置和获取支持
             $name = explode('.', $name);
             // 判断环境变量
-            if (isset($_ENV[ENV_PREFIX . $name[0] . '_' . $name[1]])) {
-                return $_ENV[ENV_PREFIX . $name[0] . '_' . $name[1]];
+            if (isset($_ENV['T_'  . $name[0] . '_' . $name[1]])) {
+                return $_ENV['T_'  . $name[0] . '_' . $name[1]];
             }
             return isset(self::$config[$range][$name[0]][$name[1]]) ? self::$config[$range][$name[0]][$name[1]] : null;
         }

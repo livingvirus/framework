@@ -450,7 +450,7 @@ trait Auto
                 if (!is_numeric($end)) {
                     $end = strtotime($end);
                 }
-                return NOW_TIME >= $start && NOW_TIME <= $end;
+                return $_SERVER['REQUEST_TIME'] >= $start && $_SERVER['REQUEST_TIME'] <= $end;
             case 'ip_allow': // IP 操作许可验证
                 return in_array($_SERVER['REMOTE_ADDR'], explode(',', $rule));
             case 'ip_deny': // IP 操作禁止验证
