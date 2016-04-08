@@ -1,25 +1,8 @@
 <?php
-// +----------------------------------------------------------------------
-// | ThinkPHP [ WE CAN DO IT JUST THINK ]
-// +----------------------------------------------------------------------
-// | Copyright (c) 2006~2016 http://thinkphp.cn All rights reserved.
-// +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
-// +----------------------------------------------------------------------
-// | Author: liu21st <liu21st@gmail.com>
-// +----------------------------------------------------------------------
-
 namespace think;
 
-/**
- * App 应用管理
- * @author  liu21st <liu21st@gmail.com>
- */
 class App
 {
-
-    // 应用调度机制
-    private static $dispatch = [];
 
     /**
      * 执行应用程序
@@ -32,58 +15,31 @@ class App
         register_shutdown_function('\think\Error::appShutdown');
         set_error_handler('\think\Error::appError');
         set_exception_handler('\think\Error::appException');
-        Config::load(THINK_PATH . 'config' . EXT);
-        // 初始化应用（公共模块） 初始化变量配置
-        self::initModule(COMMON_MODULE, Config::get());
 
+        Config::load(THINK_PATH . 'config' . EXT);
+
+        self::initModule();
         // 获取配置参数
         $config = Config::get();
+        //输入参数处理
+        new Input;
+
         // 设置系统时区
         date_default_timezone_set($config['default_timezone']);
 
         // 监听app_init
         APP_HOOK && Hook::listen('app_init');
         // 开启多语言机制
-
         // 启动session CLI 不开启
         if (!IS_CLI && $config['use_session']) {
             Session::init($config['session']);
         }
-
-        if (empty(self::$dispatch['type'])) {
-            // 未指定调度类型 则进行URL路由检测
-            self::route($config);
-        }
-        // 记录路由信息
-        APP_DEBUG && Log::record('[ ROUTE ] ' . var_export(self::$dispatch, true), 'info');
         // 监听app_begin
         APP_HOOK && Hook::listen('app_begin');
 
-        // 根据类型调度
-        switch (self::$dispatch['type']) {
-            case 'redirect':
-                // 执行重定向跳转
-                header('Location: ' . self::$dispatch['url'], true, self::$dispatch['status']);
-                break;
-            case 'module':
-                // 模块/控制器/操作
-                $data = self::module(self::$dispatch['module'], $config);
-                break;
-            case 'controller':
-                // 执行控制器操作
-                //$data = Loader::action(self::$dispatch['controller'], self::$dispatch['params']);
-                break;
-            case 'method':
-                // 执行回调方法
-                $data = self::invokeMethod(self::$dispatch['method'], self::$dispatch['params']);
-                break;
-            case 'function':
-                // 规则闭包
-                $data = self::invokeFunction(self::$dispatch['function'], self::$dispatch['params']);
-                break;
-            default:
-                throw new Exception('dispatch type not support', 10008);
-        }
+        Route::register();
+        $result = Route::parseUrl(Input::$data['_URL']);
+        $data   = self::module($result['module'], $config);
         // 监听app_end
         APP_HOOK && Hook::listen('app_end', $data);
         // 输出数据到客户端
@@ -146,7 +102,7 @@ class App
                 }
             }
             // 全局过滤
-            array_walk_recursive($args, 'think\\Input::filterExp');
+            //array_walk_recursive($args, 'think\\Input::filterExp');
         }
         return $args;
     }
@@ -154,7 +110,6 @@ class App
     // 执行 模块/控制器/操作
     private static function module($result, $config)
     {
-        // 多模块部署
         $module = $result[0] ?: $config['default_module'];
         if ($maps = $config['url_module_map']) {
             if (isset($maps[$module])) {
@@ -186,11 +141,6 @@ class App
         // 获取操作名
         define('ACTION_NAME', (strip_tags($result[2] ?: Config::get('default_action'))));
 
-        // 执行操作
-        if (!preg_match('/^[A-Za-z](\/|\.|\w)*$/', CONTROLLER_NAME)) {
-            // 安全检测
-            throw new Exception('illegal controller name:' . CONTROLLER_NAME, 10000);
-        }
         if (Config::get('action_bind_class')) {
             $class    = self::bindActionClass(Config::get('empty_controller'));
             $instance = new $class;
@@ -252,10 +202,10 @@ class App
     }
 
     // 初始化模块
-    private static function initModule($module, $config)
+    private static function initModule($module = '', $config)
     {
         // 定位模块目录
-        $module = (COMMON_MODULE == $module) ? '' : $module . DS;
+        $module = $module . DS;
         // 加载初始化文件
         if (is_file(APP_PATH . $module . 'init' . EXT)) {
             include APP_PATH . $module . 'init' . EXT;
@@ -284,92 +234,5 @@ class App
                 Lang::load($path . 'lang' . DS . LANG_SET . EXT);
             }
         }
-    }
-
-    // 分析 PATH_INFO
-    private static function parsePathinfo(array $config)
-    {
-        if (isset($_GET[$config['var_pathinfo']])) {
-            // 判断URL里面是否有兼容模式参数
-            $_SERVER['PATH_INFO'] = $_GET[$config['var_pathinfo']];
-            unset($_GET[$config['var_pathinfo']]);
-        } elseif (IS_CLI) {
-            // CLI模式下 index.php module/controller/action/params/...
-            $_SERVER['PATH_INFO'] = isset($_SERVER['argv'][1]) ? $_SERVER['argv'][1] : '';
-        }
-
-        // 监听path_info
-        APP_HOOK && Hook::listen('path_info');
-        // 分析PATHINFO信息
-        if (!isset($_SERVER['PATH_INFO'])) {
-            foreach ($config['pathinfo_fetch'] as $type) {
-                if (!empty($_SERVER[$type])) {
-                    $_SERVER['PATH_INFO'] = (0 === strpos($_SERVER[$type], $_SERVER['SCRIPT_NAME'])) ?
-                    substr($_SERVER[$type], strlen($_SERVER['SCRIPT_NAME'])) : $_SERVER[$type];
-                    break;
-                }
-            }
-        }
-    }
-
-    /**
-     * URL路由检测（根据PATH_INFO)
-     * @access public
-     * @param  array $config
-     * @throws Exception
-     */
-    public static function route(array $config)
-    {
-        // 解析PATH_INFO
-        self::parsePathinfo($config);
-
-        if (empty($_SERVER['PATH_INFO'])) {
-            $_SERVER['PATH_INFO'] = '';
-            define('__INFO__', '');
-            define('__EXT__', '');
-        } else {
-            $_SERVER['PATH_INFO'] = trim($_SERVER['PATH_INFO'], '/');
-            define('__INFO__', $_SERVER['PATH_INFO']);
-            // URL后缀
-            define('__EXT__', strtolower(pathinfo($_SERVER['PATH_INFO'], PATHINFO_EXTENSION)));
-            // 检测URL禁用后缀
-            if ($config['url_deny_suffix'] && preg_match('/\.(' . $config['url_deny_suffix'] . ')$/i', __INFO__)) {
-                throw new Exception('url suffix deny');
-            }
-            // 去除正常的URL后缀
-            $_SERVER['PATH_INFO'] = preg_replace($config['url_html_suffix'] ? '/\.(' . trim($config['url_html_suffix'], '.') . ')$/i' : '/\.' . __EXT__ . '$/i', '', __INFO__);
-        }
-
-        $depr = $config['pathinfo_depr'];
-        // 路由检测
-        if (!empty($config['url_route_on'])) {
-            // 开启路由
-            if (!empty($config['route'])) {
-                // 注册路由定义文件
-                Route::register($config['route']);
-            }
-            // 路由检测（根据路由定义返回不同的URL调度）
-            $result = Route::check($_SERVER['PATH_INFO'], $depr, $config['url_domain_deploy']);
-            if (false === $result) {
-                // 路由无效
-                if ($config['url_route_must']) {
-                    throw new Exception('route not define ');
-                } else {
-                    // 继续分析为模块/控制器/操作/参数...方式URL
-                    $result = Route::parseUrl($_SERVER['PATH_INFO'], $depr);
-                }
-            }
-        } else {
-            // 分析URL地址 采用 模块/控制器/操作/参数...
-            $result = Route::parseUrl($_SERVER['PATH_INFO'], $depr);
-        }
-        // 注册调度机制
-        self::dispatch($result);
-    }
-
-    // 指定应用调度
-    public static function dispatch($dispatch)
-    {
-        self::$dispatch = $dispatch;
     }
 }
