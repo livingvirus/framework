@@ -160,12 +160,12 @@ class Model
             return $this->getField(strtoupper($method) . '(' . $field . ') AS tp_' . $method);
         } elseif (strtolower(substr($method, 0, 5)) == 'getby') {
             // 根据某个字段获取记录
-            $field         = Loader::parseName(substr($method, 5));
+            $field         = substr($method, 5);
             $where[$field] = $args[0];
             return $this->where($where)->find();
         } elseif (strtolower(substr($method, 0, 10)) == 'getfieldby') {
             // 根据某个字段获取记录的某个值
-            $name         = Loader::parseName(substr($method, 10));
+            $name         = substr($method, 10);
             $where[$name] = $args[0];
             return $this->where($where)->getField($args[1]);
         } elseif (isset($this->scope[$method])) {
@@ -747,7 +747,7 @@ class Model
     {
         if (false !== ($value = Cache::get($guid))) {
             // 存在缓存写入数据
-            if (NOW_TIME > Cache::get($guid . '_time') + $lazyTime) {
+            if ($_SERVER['REQUEST_TIME'] > Cache::get($guid . '_time') + $lazyTime) {
                 // 延时更新时间到了，删除缓存数据 并实际写入数据库
                 Cache::rm($guid);
                 Cache::rm($guid . '_time');
@@ -761,7 +761,7 @@ class Model
             // 没有缓存数据
             Cache::set($guid, $step, 0);
             // 计时开始
-            Cache::set($guid . '_time', NOW_TIME, 0);
+            Cache::set($guid . '_time', $_SERVER['REQUEST_TIME'], 0);
             return false;
         }
     }
@@ -1047,7 +1047,7 @@ class Model
             if (!empty($this->tableName)) {
                 $tableName .= $this->tableName;
             } else {
-                $tableName .= Loader::parseName($this->name);
+                $tableName .= $this->name;
             }
             $this->trueTableName = strtolower($tableName);
         }

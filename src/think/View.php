@@ -158,6 +158,7 @@ class View
             $template = $this->parseTemplate($template);
             // 开启调试模式Win环境严格区分大小写
             // 模板不存在 抛出异常
+            //echo $template;exit;
             if (!is_file($template) || (APP_DEBUG && IS_WIN && realpath($template) != $template)) {
                 throw new Exception('template file not exists:' . $template, 10700);
             }

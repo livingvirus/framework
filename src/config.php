@@ -38,9 +38,9 @@ return [
     // 默认模块名
     'default_module'         => 'index',
     // 禁止访问模块
-    'deny_module_list'       => [COMMON_MODULE, 'runtime'],
+    'deny_module_list'       => ['common', 'runtime'],
     // 默认控制器名
-    'default_controller'     => 'Index',
+    'default_controller'     => 'Login',
     // 默认操作名
     'default_action'         => 'index',
     // 默认的空控制器名

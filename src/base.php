@@ -18,10 +18,9 @@ defined('VIEW_LAYER') or define('VIEW_LAYER', 'view');
 defined('CONTROLLER_LAYER') or define('CONTROLLER_LAYER', 'controller');
 defined('APP_DEBUG') or define('APP_DEBUG', false); // 是否调试模式
 defined('APP_HOOK') or define('APP_HOOK', false); // 是否开启HOOK
-defined('ENV_PREFIX') or define('ENV_PREFIX', 'T_'); // 环境变量的配置前缀
 
 // 环境常量
 define('IS_WIN', strstr(PHP_OS, 'WIN') ? 1 : 0);
 define('IS_CLI', PHP_SAPI == 'cli' ? 1 : 0);
 define('IS_AJAX', (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') ? true : false);
-define('NOW_TIME', $_SERVER['REQUEST_TIME']);
+

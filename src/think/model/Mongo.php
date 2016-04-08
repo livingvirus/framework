@@ -11,7 +11,6 @@
 namespace think\model;
 
 use think\Lang;
-use think\Loader;
 
 /**
  * MongoModel模型类
@@ -49,12 +48,12 @@ class Mongo extends \think\Model
     {
         if (strtolower(substr($method, 0, 5)) == 'getby') {
             // 根据某个字段获取记录
-            $field         = Loader::parseName(substr($method, 5));
+            $field         = substr($method, 5);
             $where[$field] = $args[0];
             return $this->where($where)->find();
         } elseif (strtolower(substr($method, 0, 10)) == 'getfieldby') {
             // 根据某个字段获取记录的某个值
-            $name         = Loader::parseName(substr($method, 10));
+            $name         = substr($method, 10);
             $where[$name] = $args[0];
             return $this->where($where)->getField($args[1]);
         } else {
@@ -300,7 +299,7 @@ class Mongo extends \think\Model
             if (!empty($this->tableName)) {
                 $tableName .= $this->tableName;
             } else {
-                $tableName .= Loader::parseName($this->name);
+                $tableName .= $this->name;
             }
             $this->trueTableName = $tableName;
         }

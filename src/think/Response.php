@@ -144,7 +144,7 @@ class Response
         $result = [
             'code' => $code,
             'msg'  => $msg,
-            'time' => NOW_TIME,
+            'time' => $_SERVER['REQUEST_TIME'],
             'data' => $data,
         ];
         if ($type) {
