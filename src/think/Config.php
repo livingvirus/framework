@@ -18,6 +18,47 @@ class Config
     // 参数作用域
     private static $range = '_sys_';
 
+    public static function init()
+    {
+        self::load(THINK_PATH . 'config' . EXT);
+        self::initModule();
+    }
+
+    // 初始化模块
+    private static function initModule($module = '', $config)
+    {
+        // 定位模块目录
+        $module = $module . DS;
+        // 加载初始化文件
+        if (is_file(APP_PATH . $module . 'init' . EXT)) {
+            include APP_PATH . $module . 'init' . EXT;
+        } else {
+            $path = APP_PATH . $module;
+            // 加载模块配置
+            $config = Config::load(APP_PATH . $module . 'config' . EXT);
+
+            // 读取扩展配置文件
+            if ($config['extra_config_list']) {
+                foreach ($config['extra_config_list'] as $name => $file) {
+                    $filename = $path . $file . EXT;
+                    Config::load($filename, is_string($name) ? $name : pathinfo($filename, PATHINFO_FILENAME));
+                }
+            }
+
+            // 读取扩展配置文件
+            if ($config['extra_file_list']) {
+                foreach ($config['extra_file_list'] as $name => $file) {
+                    include $filename = $path . $file . EXT;
+                }
+            }
+
+            // 加载当前模块语言包
+            if ($config['lang_switch_on'] && $module) {
+                Lang::load($path . 'lang' . DS . LANG_SET . EXT);
+            }
+        }
+    }
+
     // 设定配置参数的作用域
     public static function range($range)
     {
@@ -100,15 +141,15 @@ class Config
         if (!strpos($name, '.')) {
             // 判断环境变量
             if (isset($_ENV['T_' . $name])) {
-                return $_ENV['T_'  . $name];
+                return $_ENV['T_' . $name];
             }
             return isset(self::$config[$range][$name]) ? self::$config[$range][$name] : null;
         } else {
             // 二维数组设置和获取支持
             $name = explode('.', $name);
             // 判断环境变量
-            if (isset($_ENV['T_'  . $name[0] . '_' . $name[1]])) {
-                return $_ENV['T_'  . $name[0] . '_' . $name[1]];
+            if (isset($_ENV['T_' . $name[0] . '_' . $name[1]])) {
+                return $_ENV['T_' . $name[0] . '_' . $name[1]];
             }
             return isset(self::$config[$range][$name[0]][$name[1]]) ? self::$config[$range][$name[0]][$name[1]] : null;
         }
@@ -155,7 +196,7 @@ class Config
      */
     public static function reset($range = '')
     {
-        $range = $range ?: self::$range;
+        $range                          = $range ?: self::$range;
         true === $range ? self::$config = [] : self::$config[$range] = [];
     }
 }

@@ -7,7 +7,6 @@ defined('DS') or define('DS', DIRECTORY_SEPARATOR);
 defined('THINK_PATH') or define('THINK_PATH', dirname(__FILE__) . DS);
 defined('APP_PATH') or define('APP_PATH', dirname($_SERVER['SCRIPT_FILENAME']) . DS);
 defined('APP_NAMESPACE') or define('APP_NAMESPACE', 'app');
-defined('COMMON_MODULE') or define('COMMON_MODULE', 'common');
 defined('RUNTIME_PATH') or define('RUNTIME_PATH', dirname(APP_PATH) . DS . 'runtime' . DS);
 defined('LOG_PATH') or define('LOG_PATH', RUNTIME_PATH . 'log' . DS);
 defined('CACHE_PATH') or define('CACHE_PATH', RUNTIME_PATH . 'cache' . DS);

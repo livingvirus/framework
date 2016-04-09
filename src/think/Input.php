@@ -9,7 +9,7 @@ class Input
     public static $data = [];
     public $method      = ['get', 'post', 'put', 'param', 'request', 'session', 'cookie', 'server', 'url', 'env', 'file'];
 
-    public function __construct()
+    public static function init()
     {
         parse_str(file_get_contents('php://input'), $GLOBALS['_PUT']);
         $GLOBALS['_URL'] = [];
