@@ -29,10 +29,11 @@ class Route
         self::match($config);
         $url = explode('/', $trueUrl);
 
-        $moudel='\app\index';
+        any/any/any
+        $moudel='\app\\'.$any;
         $controller  =$moudel'\controller\Index';
         $class = $moudel. $controller;
-        
+
         self::exec($class, $method, $vars);
     }
 
