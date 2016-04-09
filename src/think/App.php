@@ -14,8 +14,8 @@ class App
         register_shutdown_function('\think\Error::appShutdown');
         set_error_handler('\think\Error::appError');
         set_exception_handler('\think\Error::appException');
-        // 获取配置参数
-        Config::init();
+        // 加载配置文件
+        Config::load();
         //输入参数处理
         Input::init();
         $config = Config::get();
