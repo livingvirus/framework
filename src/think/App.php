@@ -25,7 +25,7 @@ class App
         APP_HOOK && Hook::listen('app_init');
 
         // 启动session CLI 不开启
-        if (!IS_CLI && $config['use_session']) {
+        if (!IS_CLI) {
             Session::init($config['session']);
         }
         // 监听app_begin

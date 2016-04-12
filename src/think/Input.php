@@ -9,29 +9,17 @@ class Input
     public static $data = [];
     public $method      = ['get', 'post', 'put', 'param', 'request', 'session', 'cookie', 'server', 'url', 'env', 'file'];
 
-    public static function init()
+    public function __construct()
     {
-        parse_str(file_get_contents('php://input'), $GLOBALS['_PUT']);
-        $GLOBALS['_URL'] = [];
-        foreach (explode('/', $_SERVER['PATH_INFO']) as $key => $value) {
-            if (!empty($value)) {
-                $GLOBALS['_URL'][$key] = $value;
-            }
-        }
-        $GLOBALS['_SESSION'] = $_SESSION;
-        self::$data          = $GLOBALS;
+        self::$data             = &$GLOBALS;
+        self::$data['_SESSION'] = &$_SESSION;
+        parse_str(file_get_contents('php://input'), self::$data['_PUT']);
+        self::$data['_URL'] = explode('/', $_SERVER['PATH_INFO']);
+
     }
 
-    public static function get($method = '', $name = '', $default = null, $filter = null, $merge = false)
+    public static function init($method)
     {
-        if (!empty($method)) {
-            return self::$data["_" . strtoupper($method)][$name];
-        }
-        //自动判断
-        foreach ($this->method as $key => $value) {
-            if (isset(self::$data["_" . strtoupper($value)][$name])) {
-                return self::$data["_" . strtoupper($value)][$name];
-            }
-        }
+
     }
 }

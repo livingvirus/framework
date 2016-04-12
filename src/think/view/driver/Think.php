@@ -18,7 +18,7 @@ class Think
     private $template = null;
     public function __construct($config = [])
     {
-        $this->template = new Template($config);
+        $this->template = new \think\Template($config);
     }
 
     public function fetch($template, $data = [], $cache = [])

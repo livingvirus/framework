@@ -30,13 +30,24 @@ function C($name = '', $value = null, $range = '')
 }
 
 // 获取输入数据 支持默认值和过滤
-function I($key, $default = null, $filter = '', $merge = false)
+function I($method, $name, $value = '')
 {
-    if ($pos = strpos($key, '.')) {
-        // 指定参数来源
-        $method = substr($key, 0, $pos);
+    if (is_array($name)) {
+        // 初始化
+        \think\Input::init($name);
+    } elseif (is_null($name)) {
+        // 清除
+        \think\Input::clear($value);
+    } elseif ('' === $value) {
+        // 获取
+        return \think\Input::get($name);
+    } elseif (is_null($value)) {
+        // 删除
+        return \think\Input::delete($name);
+    } else {
+        // 设置
+        return \think\Input::set($name, $value);
     }
-    return \think\Input::get($method, $key, $default, $filter, $merge);
 }
 
 /**
