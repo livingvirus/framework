@@ -30,7 +30,7 @@ function C($name = '', $value = null, $range = '')
 }
 
 // 获取输入数据 支持默认值和过滤
-function I($method, $name, $value = '')
+function I($name, $value = '', $method = 'Session')
 {
     if (is_array($name)) {
         // 初始化
@@ -95,26 +95,6 @@ function session($name, $value = '')
     } else {
         // 设置session
         return \think\Session::set($name, $value);
-    }
-}
-
-function cookie($name, $value = '')
-{
-    if (is_array($name)) {
-        // 初始化
-        \think\Cookie::init($name);
-    } elseif (is_null($name)) {
-        // 清除
-        \think\Cookie::clear($value);
-    } elseif ('' === $value) {
-        // 获取
-        return \think\Cookie::get($name);
-    } elseif (is_null($value)) {
-        // 删除session
-        return \think\Cookie::delete($name);
-    } else {
-        // 设置session
-        return \think\Cookie::set($name, $value);
     }
 }
 

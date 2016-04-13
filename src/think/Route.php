@@ -54,26 +54,4 @@ class Route
         }
 
     }
-
-    private static function exec($class = '', $method = '_empty', $var = [], $config)
-    {
-        if (class_exists($class)) {
-            $instance = new $class;
-        } else {
-            throw new Exception('class not exist :' . $class, 10007);
-        }
-
-        // 操作方法开始监听
-        $call = [$instance, $method];
-        APP_HOOK && Hook::listen('action_begin', $call);
-
-        if (method_exists($instance, $method)) {
-            $method = new \ReflectionMethod($instance, $method);
-            $data   = $method->invokeArgs($instance, $var);
-            APP_DEBUG && Log::record('[ RUN ] ' . $method->getFileName(), 'info');
-        } else {
-            throw new Exception('method [ ' . (new \ReflectionClass($class))->getName() . '->' . $method . ' ] not exists ', 10002);
-        }
-        return $data;
-    }
 }
