@@ -8,8 +8,8 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
+
 namespace think\controller;
-use phprpc.phprpc_server;
 
 /**
  * ThinkPHP RPC控制器类
@@ -31,8 +31,10 @@ abstract class Rpc
             $this->_initialize();
         }
 
+        //导入类库
+        \think\Loader::import('vendor.phprpc.phprpc_server');
         //实例化phprpc
-        $server = new PHPRPC_Server();
+        $server = new \PHPRPC_Server();
         if ($this->allowMethodList) {
             $methods = $this->allowMethodList;
         } else {

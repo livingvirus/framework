@@ -1,10 +1,20 @@
 <?php
+// +----------------------------------------------------------------------
+// | ThinkPHP [ WE CAN DO IT JUST THINK IT ]
+// +----------------------------------------------------------------------
+// | Copyright (c) 2006-2016 http://thinkphp.cn All rights reserved.
+// +----------------------------------------------------------------------
+// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+// +----------------------------------------------------------------------
+// | Author: luofei614 <weibo.com/luofei614>
+// +----------------------------------------------------------------------
+
+namespace think\log\driver;
+
 /**
  * github: https://github.com/luofei614/SocketLog
  * @author luofei614<weibo.com/luofei614>
  */
-namespace think\log\driver;
-
 class Socket
 {
     public $port = 1116; //SocketLog 服务的http的端口号
@@ -30,31 +40,34 @@ class Socket
         'big'           => 'font-size:20px;color:red;',
     ];
 
-    protected $_allowForceClientIds = []; //配置强制推送且被授权的client_id
+    protected $allowForceClientIds = []; //配置强制推送且被授权的client_id
 
     /**
      * 架构函数
      * @param array $config 缓存参数
      * @access public
      */
-    public function __construct($config = [])
+    public function __construct(array $config = [])
     {
         if (!empty($config)) {
             $this->config = array_merge($this->config, $config);
         }
-        if (isset($this->config['allow_client_id'])) {
-            //兼容旧配置
-            $this->allow_client_ids = array_merge($this->allow_client_ids, [$this->config['allow_client_id']]);
-        }
     }
 
-    public function save($logs = [])
+    /**
+     * 日志写入接口
+     * @access public
+     * @param array $logs 日志信息
+     * @return bool
+     */
+    public function save(array $logs = [])
     {
         if (!$this->check()) {
-            return;
+            return false;
         }
-        $runtime    = number_format(microtime(true) - START_TIME, 6);
-        $reqs       = number_format(1 / $runtime, 2);
+        $runtime    = microtime(true) - START_TIME;
+        $reqs       = number_format(1 / number_format($runtime, 8), 2);
+        $runtime    = number_format($runtime, 6);
         $time_str   = " [运行时间：{$runtime}s][吞吐率：{$reqs}req/s]";
         $memory_use = number_format((memory_get_usage() - START_MEM) / 1024, 2);
         $memory_str = " [内存消耗：{$memory_use}kb]";
@@ -94,7 +107,7 @@ class Socket
         ];
 
         foreach ($logs as &$log) {
-            if (in_array($log['type'], ['sql', 'notic', 'debug', 'info'])) {
+            if (in_array($log['type'], ['sql', 'notice', 'debug', 'info'])) {
                 $log['type'] = 'log';
             }
         }
@@ -103,16 +116,16 @@ class Socket
             $client_id = '';
         }
 
-        if (!empty($this->_allowForceClientIds)) {
+        if (!empty($this->allowForceClientIds)) {
             //强制推送到多个client_id
-            foreach ($this->_allowForceClientIds as $force_client_id) {
+            foreach ($this->allowForceClientIds as $force_client_id) {
                 $client_id = $force_client_id;
                 $this->sendToClient($tabid, $client_id, $logs, $force_client_id);
             }
         } else {
             $this->sendToClient($tabid, $client_id, $logs, '');
         }
-
+        return true;
     }
 
     /**
@@ -125,12 +138,12 @@ class Socket
      */
     protected function sendToClient($tabid, $client_id, $logs, $force_client_id)
     {
-        $logs = array(
+        $logs = [
             'tabid'           => $tabid,
             'client_id'       => $client_id,
             'logs'            => $logs,
             'force_client_id' => $force_client_id,
-        );
+        ];
         $msg     = @json_encode($logs);
         $address = '/' . $client_id; //将client_id作为地址， server端通过地址判断将日志发布给谁
         $this->send($this->config['host'], $msg, $address);
@@ -150,8 +163,8 @@ class Socket
         $allow_client_ids = $this->config['allow_client_ids'];
         if (!empty($allow_client_ids)) {
             //通过数组交集得出授权强制推送的client_id
-            $this->_allowForceClientIds = array_intersect($allow_client_ids, $this->config['force_client_ids']);
-            if (!$tabid && count($this->_allowForceClientIds)) {
+            $this->allowForceClientIds = array_intersect($allow_client_ids, $this->config['force_client_ids']);
+            if (!$tabid && count($this->allowForceClientIds)) {
                 return true;
             }
 
@@ -160,7 +173,7 @@ class Socket
                 return false;
             }
         } else {
-            $this->_allowForceClientIds = $this->config['force_client_ids'];
+            $this->allowForceClientIds = $this->config['force_client_ids'];
         }
         return true;
     }

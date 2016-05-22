@@ -9,33 +9,22 @@
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
 
-namespace think\log\alarm;
+namespace think\log\driver;
 
 /**
- * 邮件通知驱动
+ * 模拟测试输出
  */
-class Email
+class Test
 {
-
-    protected $config = [
-        'address' => '',
-    ];
-
-    // 实例化并传入参数
-    public function __construct($config = [])
-    {
-        $this->config = array_merge($this->config, $config);
-    }
-
     /**
-     * 通知发送接口
+     * 日志写入接口
      * @access public
-     * @param string $msg 日志信息
+     * @param array $log 日志信息
      * @return bool
      */
-    public function send($msg = '')
+    public function save(array $log = [])
     {
-        return error_log($msg, 1, $this->config['address']);
+        return true;
     }
 
 }

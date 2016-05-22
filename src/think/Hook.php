@@ -101,7 +101,12 @@ class Hook
 
                 if (APP_DEBUG) {
                     Debug::remark('behavior_end', 'time');
-                    Log::record('[ BEHAVIOR ] Run ' . $name . ' @' . $tag . ' [ RunTime:' . Debug::getRangeTime('behavior_start', 'behavior_end') . 's ]', 'log');
+                    if ($name instanceof \Closure) {
+                        $name = 'Closure';
+                    } elseif (is_object($name)) {
+                        $name = get_class($name);
+                    }
+                    Log::record('[ BEHAVIOR ] Run ' . $name . ' @' . $tag . ' [ RunTime:' . Debug::getRangeTime('behavior_start', 'behavior_end') . 's ]', 'info');
                 }
                 if (false === $result) {
                     // 如果返回false 则中断行为执行
@@ -114,7 +119,7 @@ class Hook
 
     /**
      * 执行某个行为
-     * @param string $class 行为类名称
+     * @param mixed $class 要执行的行为
      * @param string $tag 方法名（标签名）
      * @param Mixed $params 传人的参数
      * @return mixed
@@ -122,9 +127,13 @@ class Hook
     public static function exec($class, $tag = '', &$params = null)
     {
         if ($class instanceof \Closure) {
-            return $class($params);
+            $result = call_user_func_array($class, [ & $params]);
+        } elseif (is_object($class)) {
+            $result = call_user_func_array([$class, $tag], [ & $params]);
+        } else {
+            $obj    = new $class();
+            $result = ($tag && is_callable([$obj, $tag])) ? $obj->$tag($params) : $obj->run($params);
         }
-        $obj = new $class();
-        return ($tag && is_callable([$obj, $tag])) ? $obj->$tag($params) : $obj->run($params);
+        return $result;
     }
 }

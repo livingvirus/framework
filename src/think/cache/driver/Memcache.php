@@ -24,6 +24,7 @@ class Memcache
         'timeout'    => 0, // 超时时间（单位：毫秒）
         'persistent' => true,
         'length'     => 0,
+        'prefix'     => '',
     ];
 
     /**
@@ -51,8 +52,8 @@ class Memcache
         foreach ((array) $hosts as $i => $host) {
             $port = isset($ports[$i]) ? $ports[$i] : $ports[0];
             $this->options['timeout'] > 0 ?
-            $this->handler->addServer($host, $port, $this->options['persistent'], 1) : 
-            $this->handler->addServer($host, $port, $this->options['persistent'], 1, $this->options['timeout']);
+            $this->handler->addServer($host, $port, $this->options['persistent'], 1, $this->options['timeout']) :
+            $this->handler->addServer($host, $port, $this->options['persistent'], 1);
         }
     }
 
@@ -64,7 +65,6 @@ class Memcache
      */
     public function get($name)
     {
-        Cache::$readTimes++;
         return $this->handler->get($this->options['prefix'] . $name);
     }
 
@@ -78,30 +78,11 @@ class Memcache
      */
     public function set($name, $value, $expire = null)
     {
-        Cache::$writeTimes++;
         if (is_null($expire)) {
             $expire = $this->options['expire'];
         }
         $name = $this->options['prefix'] . $name;
         if ($this->handler->set($name, $value, 0, $expire)) {
-            if ($this->options['length'] > 0) {
-                // 记录缓存队列
-                $queue = $this->handler->get('__info__');
-                if (!$queue) {
-                    $queue = [];
-                }
-                if (false === array_search($name, $queue)) {
-                    array_push($queue, $name);
-                }
-
-                if (count($queue) > $this->options['length']) {
-                    // 出列
-                    $key = array_shift($queue);
-                    // 删除缓存
-                    $this->handler->delete($key);
-                }
-                $this->handler->set('__info__', $queue);
-            }
             return true;
         }
         return false;
@@ -109,10 +90,8 @@ class Memcache
 
     /**
      * 删除缓存
-     *
      * @param    string  $name 缓存变量名
      * @param bool|false $ttl
-     *
      * @return bool
      */
     public function rm($name, $ttl = false)

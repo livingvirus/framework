@@ -90,13 +90,9 @@ abstract class Rest
      * @param integer $code HTTP状态
      * @return void
      */
-    protected function response($data, $type = '', $code = 200)
+    protected function response($data, $type = 'json', $code = 200)
     {
-        http_response_code($code);
-        Response::data($data);
-        if ($type) {
-            Response::type($type);
-        }
+        return Response::create($data, $type)->code($code);
     }
 
     /**

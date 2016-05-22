@@ -23,6 +23,7 @@ class Memcached
         'expire'  => 0,
         'timeout' => 0, // 超时时间（单位：毫秒）
         'length'  => 0,
+        'prefix'  => '',
     ];
 
     /**
@@ -65,7 +66,6 @@ class Memcached
      */
     public function get($name)
     {
-        Cache::$readTimes++;
         return $this->handler->get($this->options['prefix'] . $name);
     }
 
@@ -79,30 +79,12 @@ class Memcached
      */
     public function set($name, $value, $expire = null)
     {
-        Cache::$writeTimes++;
         if (is_null($expire)) {
             $expire = $this->options['expire'];
         }
-        $name = $this->options['prefix'] . $name;
+        $name   = $this->options['prefix'] . $name;
+        $expire = 0 == $expire ? 0 : time() + $expire;
         if ($this->handler->set($name, $value, $expire)) {
-            if ($this->options['length'] > 0) {
-                // 记录缓存队列
-                $queue = $this->handler->get('__info__');
-                if (!$queue) {
-                    $queue = [];
-                }
-                if (false === array_search($name, $queue)) {
-                    array_push($queue, $name);
-                }
-
-                if (count($queue) > $this->options['length']) {
-                    // 出列
-                    $key = array_shift($queue);
-                    // 删除缓存
-                    $this->handler->delete($key);
-                }
-                $this->handler->set('__info__', $queue);
-            }
             return true;
         }
         return false;
@@ -110,10 +92,8 @@ class Memcached
 
     /**
      * 删除缓存
-     *
      * @param    string  $name 缓存变量名
      * @param bool|false $ttl
-     *
      * @return bool
      */
     public function rm($name, $ttl = false)
