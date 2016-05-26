@@ -1,8 +1,8 @@
 {
     "name": "livingvirus/framework",
-    "description": "the new new thinkphp framework",
+    "description": "the think_kang framework",
     "type": "project",
-    "keywords": ["framework", "thinkphp", "ORM"],
+    "keywords": ["framework", "PHP7","think_kang"],
     "homepage": "",
     "license": "Apache2",
     "authors": [
@@ -11,12 +11,11 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0"
+        "php": ">=7.0.0"
     },
     "autoload": {
         "files": [
-            "src/base.php",
-            "src/helper.php"
+            "src/base.php"
         ],
         "psr-4": {
             "think\\": "src/think/",
