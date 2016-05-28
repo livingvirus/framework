@@ -105,7 +105,7 @@ class Error
             } else {
                 $e = $error;
             }
-        } else if (1) {
+        } else {
             //否则定向到错误页面
             $error_page = Config::get('error_page');
             if (!empty($error_page)) {
@@ -114,8 +114,7 @@ class Error
                 $e['code']    = $code;
                 $e['message'] = Config::get('show_error_msg') ? $message : Config::get('error_message');
             }
-        } else {
-            $e = ['message' => $message, 'code' => $code];
+            //$e = ['message' => $message, 'code' => $code];
         }
         // 记录异常日志
         Log::write('[' . $e['code'] . '] ' . $e['message'] . '[' . $e['file'] . ' : ' . $e['line'] . ']', 'error');
