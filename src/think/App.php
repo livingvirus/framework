@@ -19,6 +19,10 @@ class App
         // 初始化应用（公共模块）
         self::initModule(COMMON_MODULE);
         $config = Config::get();
+        if (!empty($config['default_timezone'])) {
+            // 设置系统时区
+            date_default_timezone_set($config['default_timezone']);
+        }
         APP_HOOK && Hook::listen('app_init');
         // 启动session CLI 不开启
         if (!IS_CLI) {
@@ -250,27 +254,23 @@ class App
     public static function initModule($module, $project = APP_PATH)
     {
         // 加载初始化文件
-        $configFile = $project . $module . ETC_LAYER . 'config' . EXT;
-        if (is_file($configFile)) {
-            $config = Config::load($configFile);
-        }
-        var_dump($config);die;
+        $baseConfig = $project . $module . CONFIG_LAYER . '/';
+        $configFile = array_splice(scandir($baseConfig), 2);
         // 读取扩展配置文件
-        if ($config['extra_config_list']) {
-            foreach ($config['extra_config_list'] as $name => $file) {
-                $filename = $path . $file . CONF_EXT;
+        if (count($configFile) > 0) {
+            foreach ($configFile as $name => $file) {
+                echo $filename = $baseConfig . $file;
                 Config::load($filename, is_string($name) ? $name : pathinfo($filename, PATHINFO_FILENAME));
             }
         }
-        if (!empty($config['default_timezone'])) {
-            // 设置系统时区
-            date_default_timezone_set($config['default_timezone']);
+        // 加载全局函数
+        $baseHelper = $project . $module . HELPER_LAYER . '/';
+        $helperFile = array_splice(scandir($baseHelper), 2);
+        if (count($helperFile) > 0) {
+            foreach ($helperFile as $name => $file) {
+                $filename = $baseHelper . $file;
+                include $filename;
+            }
         }
-
-        $helperFile = $project . $module . ETC_LAYER . 'config' . EXT;
-        if (is_file($helperFile)) {
-            include $helperFile;
-        }
-
     }
 }

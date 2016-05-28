@@ -14,10 +14,11 @@ defined('APP_DEBUG') or define('APP_DEBUG', false); // 是否调试模式
 defined('APP_HOOK') or define('APP_HOOK', false); // 是否开启HOOK
 
 //模块结构常量
+defined('COMMON_MODULE') or define('COMMON_MODULE', 'common');
 defined('MODEL_LAYER') or define('MODEL_LAYER', 'model');
 defined('VIEW_LAYER') or define('VIEW_LAYER', 'view');
 defined('CONTROLLER_LAYER') or define('CONTROLLER_LAYER', 'controller');
-defined('ETC_LAYER') or define('ETC_LAYER', 'etc');
+defined('CONFIG_LAYER') or define('CONFIG_LAYER', 'config');
 defined('HELPER_LAYER') or define('HELPER_LAYER', 'helper');
 defined('COMMON_MODULE') or define('COMMON_MODULE', 'common');
 
