@@ -14,13 +14,25 @@ namespace think;
 use think\Config;
 use think\Input;
 
+// 请求方法() $protocol(协议) $domain(域名) url $suffix(后缀) 请求参数
 class Request
 {
     /**
      * @var object 对象实例
      */
     protected static $instance;
-
+    /**
+     * @var string 请求方法
+    'GET'    => 'get',
+    'POST'   => 'post',
+    'PUT'    => 'put',
+    'DELETE' => 'delete',
+     */
+    protected $method;
+    /**
+     * @var string 协议
+     */
+    protected $protocol;
     /**
      * @var string 域名
      */
@@ -65,6 +77,10 @@ class Request
      * @var array 调度信息
      */
     protected $dispatch = [];
+    /**
+     * @var array 后缀信息
+     */
+    protected $suffix = [];
 
     /**
      * @var array 请求参数

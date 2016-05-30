@@ -11,6 +11,7 @@
 
 namespace think;
 
+//路由规则  map  match  *匹配规则pattern
 class Route
 {
     // 路由规则

@@ -33,7 +33,7 @@ class Sae
         } else {
             $current_uri = "cmd:" . implode(' ', $_SERVER['argv']);
         }
-        $runtime    = microtime(true) - START_TIME;
+        $runtime    = microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'];
         $reqs       = number_format(1 / number_format($runtime, 8), 2);
         $runtime    = number_format($runtime, 6);
         $time_str   = " [运行时间：{$runtime}s] [吞吐率：{$reqs}req/s]";

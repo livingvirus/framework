@@ -1,7 +1,10 @@
 <?php
 // 开始运行时间和内存使用
-define('START_TIME', microtime(true));
+//define('START_TIME', microtime(true)); //使用$_SERVER['REQUEST_TIME_FLOAT']
 define('START_MEM', memory_get_usage());
+defined('APP_DEBUG') or define('APP_DEBUG', false); // 是否调试模式
+defined('APP_HOOK') or define('APP_HOOK', false); // 是否开启HOOK
+
 // 系统常量
 defined('DS') or define('DS', DIRECTORY_SEPARATOR);
 defined('THINK_PATH') or define('THINK_PATH', dirname(__FILE__) . DS);
@@ -10,8 +13,6 @@ defined('RUNTIME_PATH') or define('RUNTIME_PATH', dirname(APP_PATH) . DS . 'runt
 defined('LOG_PATH') or define('LOG_PATH', RUNTIME_PATH . 'log' . DS);
 defined('CACHE_PATH') or define('CACHE_PATH', RUNTIME_PATH . 'cache' . DS);
 defined('TEMP_PATH') or define('TEMP_PATH', RUNTIME_PATH . 'temp' . DS);
-defined('APP_DEBUG') or define('APP_DEBUG', false); // 是否调试模式
-defined('APP_HOOK') or define('APP_HOOK', false); // 是否开启HOOK
 
 //模块结构常量
 defined('COMMON_MODULE') or define('COMMON_MODULE', 'common');
