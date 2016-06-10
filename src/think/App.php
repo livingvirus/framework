@@ -117,7 +117,7 @@ class App {
             if (APP_DEBUG) {
                 throw new \Exception($e);
             } else {
-                echo "404" . $e->message;
+				echo 404;
             }
         }
         return $data;
