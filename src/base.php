@@ -1,10 +1,10 @@
 <?php
+
 // 开始运行时间和内存使用
 //define('START_TIME', microtime(true)); //使用$_SERVER['REQUEST_TIME_FLOAT']
 define('START_MEM', memory_get_usage());
 defined('APP_DEBUG') or define('APP_DEBUG', false); // 是否调试模式
 defined('APP_HOOK') or define('APP_HOOK', false); // 是否开启HOOK
-
 // 系统常量
 defined('DS') or define('DS', DIRECTORY_SEPARATOR);
 defined('THINK_PATH') or define('THINK_PATH', dirname(__FILE__) . DS);
