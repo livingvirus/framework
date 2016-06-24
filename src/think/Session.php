@@ -92,7 +92,7 @@ class Session
 
             // 检查驱动类
             if (!class_exists($class) || !session_set_save_handler(new $class($config))) {
-                throw new \think\Exception('error session handler', 11700);
+                throw new \Exception('error session handler', 11700);
             }
         }
         if ($isDoStart) {

@@ -71,7 +71,7 @@ trait Transaction
             }
             // 提交事务
             $this->commit();
-        } catch (\think\exception $e) {
+        } catch (\Exception $e) {
             $this->rollback();
             return false;
         }

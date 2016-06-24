@@ -11,8 +11,7 @@
 
 namespace think;
 
-class Log
-{
+class Log {
     const LOG   = 'log';
     const ERROR = 'error';
     const INFO  = 'info';
@@ -30,8 +29,7 @@ class Log
     protected static $alarm = null;
 
     // 日志初始化
-    public static function init($config = [])
-    {
+    public static function init($config = []) {
         $type  = isset($config['type']) ? $config['type'] : 'File';
         $class = (!empty($config['namespace']) ? $config['namespace'] : '\\think\\log\\driver\\') . ucwords($type);
         unset($config['type']);
@@ -41,8 +39,7 @@ class Log
     }
 
     // 通知初始化
-    public static function alarm($config = [])
-    {
+    public static function alarm($config = []) {
         $type  = isset($config['type']) ? $config['type'] : 'Email';
         $class = (!empty($config['namespace']) ? $config['namespace'] : '\\think\\log\\alarm\\') . ucwords($type);
         unset($config['type']);
@@ -55,8 +52,7 @@ class Log
      * 获取全部日志信息
      * @return array
      */
-    public static function getLog()
-    {
+    public static function getLog() {
         return self::$log;
     }
 
@@ -66,8 +62,7 @@ class Log
      * @param string $type 信息类型
      * @return void
      */
-    public static function record($msg, $type = 'log')
-    {
+    public static function record($msg, $type = 'log') {
         if (!is_string($msg)) {
             $msg = var_export($msg, true);
         }
@@ -78,8 +73,7 @@ class Log
      * 保存调试信息
      * @return void
      */
-    public static function save()
-    {
+    public static function save() {
         if (is_null(self::$driver)) {
             self::init(Config::get('log'));
         }
@@ -92,8 +86,7 @@ class Log
      * @param string $type 信息类型
      * @return void
      */
-    public static function write($msg, $type = 'log')
-    {
+    public static function write($msg, $type = 'log') {
         if (!is_string($msg)) {
             $msg = var_export($msg, true);
         }
@@ -113,14 +106,12 @@ class Log
      * 发送预警通知
      * @return void
      */
-    public static function send($msg)
-    {
+    public static function send($msg) {
         self::$alarm && self::$alarm->send($msg);
     }
 
     // 静态调用
-    public static function __callStatic($method, $args)
-    {
+    public static function __callStatic($method, $args) {
         if (in_array($method, self::$type)) {
             array_push($args, $method);
             return call_user_func_array('\\think\\Log::record', $args);

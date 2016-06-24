@@ -11,8 +11,7 @@
 
 namespace think;
 
-class Model
-{
+class Model {
     // 操作状态
     const MODEL_INSERT    = 1; //  新增
     const MODEL_UPDATE    = 2; //  更新
@@ -59,8 +58,7 @@ class Model
      * @param string $name 模型名称
      * @param array $config 模型配置
      */
-    public function __construct($name = '', array $config = [])
-    {
+    public function __construct($name = '', array $config = []) {
         // 模型初始化
         $this->_initialize();
         // 传入模型参数
@@ -105,8 +103,7 @@ class Model
      * @param mixed $value 值
      * @return void
      */
-    public function __set($name, $value)
-    {
+    public function __set($name, $value) {
         // 设置数据对象属性
         $this->data[$name] = $value;
     }
@@ -117,8 +114,7 @@ class Model
      * @param string $name 名称
      * @return mixed
      */
-    public function __get($name)
-    {
+    public function __get($name) {
         return isset($this->data[$name]) ? $this->data[$name] : null;
     }
 
@@ -128,8 +124,7 @@ class Model
      * @param string $name 名称
      * @return boolean
      */
-    public function __isset($name)
-    {
+    public function __isset($name) {
         return isset($this->data[$name]);
     }
 
@@ -139,8 +134,7 @@ class Model
      * @param string $name 名称
      * @return void
      */
-    public function __unset($name)
-    {
+    public function __unset($name) {
         unset($this->data[$name]);
     }
 
@@ -152,8 +146,7 @@ class Model
      * @return mixed
      * @throws \think\Exception
      */
-    public function __call($method, $args)
-    {
+    public function __call($method, $args) {
         if (in_array(strtolower($method), ['count', 'sum', 'min', 'max', 'avg'], true)) {
             // 统计查询的实现
             $field = isset($args[0]) ? $args[0] : '*';
@@ -172,13 +165,12 @@ class Model
             // 命名范围的单独调用支持
             return $this->scope($method, $args[0]);
         } else {
-            throw new Exception(__CLASS__ . ':' . $method . ' method not exist');
+            throw new \Exception(__CLASS__ . ':' . $method . ' method not exist');
         }
     }
 
     // 回调方法 初始化模型
-    protected function _initialize()
-    {}
+    protected function _initialize() {}
 
     /**
      * 对写入到数据库的数据进行处理
@@ -188,8 +180,7 @@ class Model
      * @return array
      * @throws \think\Exception
      */
-    protected function _write_data($data, $type)
-    {
+    protected function _write_data($data, $type) {
         if (!empty($this->duplicate)) {
             // 存在数据副本
             $data = array_diff_assoc($data, $this->duplicate);
@@ -229,7 +220,7 @@ class Model
             foreach ($data as $key => $val) {
                 if (!in_array($key, $fields, true)) {
                     if (Config::get('db_fields_strict')) {
-                        throw new Exception(' fields not exists :[' . $key . '=>' . $val . ']');
+                        throw new \Exception(' fields not exists :[' . $key . '=>' . $val . ']');
                     }
                     unset($data[$key]);
                 } elseif (is_scalar($val) && !isset($this->options['bind'][$key])) {
@@ -248,8 +239,7 @@ class Model
         return $data;
     }
     // 写入数据前的回调方法 包括新增和更新
-    protected function _before_write(&$data)
-    {}
+    protected function _before_write(&$data) {}
 
     /**
      * 新增数据
@@ -259,8 +249,7 @@ class Model
      * @return mixed
      * @throws \think\Exception
      */
-    public function add($data = '', $replace = false)
-    {
+    public function add($data = '', $replace = false) {
         if (empty($data)) {
             // 没有传递数据，获取当前数据对象的值
             if (!empty($this->data)) {
@@ -268,7 +257,7 @@ class Model
                 // 重置数据
                 $this->data = [];
             } else {
-                throw new Exception('invalid data');
+                throw new \Exception('invalid data');
             }
         }
         // 数据处理
@@ -302,16 +291,13 @@ class Model
         return $result;
     }
     // 插入数据前的回调方法
-    protected function _before_insert(&$data, $options = [])
-    {}
+    protected function _before_insert(&$data, $options = []) {}
     // 插入成功后的回调方法
-    protected function _after_insert($data, $options = [])
-    {}
+    protected function _after_insert($data, $options = []) {}
 
-    public function addAll($dataList, $options = [], $replace = false)
-    {
+    public function addAll($dataList, $options = [], $replace = false) {
         if (empty($dataList)) {
-            throw new Exception('no data to write');
+            throw new \Exception('no data to write');
         }
         // 数据处理
         foreach ($dataList as $key => $data) {
@@ -337,8 +323,7 @@ class Model
      * @return boolean
      * @throws \think\Exception
      */
-    public function save($data = '')
-    {
+    public function save($data = '') {
         if (empty($data)) {
             // 没有传递数据，获取当前数据对象的值
             if (!empty($this->data)) {
@@ -346,14 +331,14 @@ class Model
                 // 重置数据
                 $this->data = [];
             } else {
-                throw new Exception('no data require update');
+                throw new \Exception('no data require update');
             }
         }
         // 数据处理
         $data = $this->_write_data($data, 'update');
         if (empty($data)) {
             // 没有数据则不执行
-            throw new Exception('no data require update');
+            throw new \Exception('no data require update');
         }
         // 分析表达式
         $options = $this->_parseOptions();
@@ -370,14 +355,14 @@ class Model
                         $where[$field] = $data[$field];
                     } else {
                         // 如果缺少复合主键数据则不执行
-                        throw new Exception('miss complex primary data');
+                        throw new \Exception('miss complex primary data');
                     }
                     unset($data[$field]);
                 }
             }
             if (!isset($where)) {
                 // 如果没有任何更新条件则不执行
-                throw new Exception('no data to update without where');
+                throw new \Exception('no data to update without where');
             } else {
                 $options['where'] = $where;
             }
@@ -399,11 +384,9 @@ class Model
         return $result;
     }
     // 更新数据前的回调方法
-    protected function _before_update(&$data, $options = [])
-    {}
+    protected function _before_update(&$data, $options = []) {}
     // 更新成功后的回调方法
-    protected function _after_update($data, $options = [])
-    {}
+    protected function _after_update($data, $options = []) {}
 
     /**
      * 删除数据
@@ -412,15 +395,14 @@ class Model
      * @return mixed
      * @throws \think\Exception
      */
-    public function delete($options = [])
-    {
+    public function delete($options = []) {
         $pk = $this->getPk();
         if (empty($options) && empty($this->options['where'])) {
             // 如果删除条件为空 则删除当前数据对象所对应的记录
             if (!empty($this->data) && isset($this->data[$pk])) {
                 return $this->delete($this->data[$pk]);
             } else {
-                throw new Exception('no data to delete without where');
+                throw new \Exception('no data to delete without where');
             }
         }
         if (is_numeric($options) || is_string($options)) {
@@ -449,14 +431,14 @@ class Model
                 }
                 $options['where'] = $where;
             } else {
-                throw new Exception('miss complex primary data');
+                throw new \Exception('miss complex primary data');
             }
         }
         // 分析表达式
         $options = $this->_parseOptions($options);
         if (empty($options['where'])) {
             // 如果条件为空 不进行删除操作 除非设置 1=1
-            throw new Exception('no data to delete without where');
+            throw new \Exception('no data to delete without where');
         }
         if (isset($options['where'][$pk])) {
             $pkValue = $options['where'][$pk];
@@ -473,8 +455,7 @@ class Model
         return $result;
     }
     // 删除成功后的回调方法
-    protected function _after_delete($data, $options = [])
-    {}
+    protected function _after_delete($data, $options = []) {}
 
     /**
      * 查询数据集
@@ -483,8 +464,7 @@ class Model
      * @return mixed
      * @throws \think\Exception
      */
-    public function select($options = [])
-    {
+    public function select($options = []) {
         $pk = $this->getPk();
         if (is_string($options) || is_numeric($options)) {
             // 根据主键查询
@@ -511,7 +491,7 @@ class Model
                 }
                 $options['where'] = $where;
             } else {
-                throw new Exception('miss complex primary data');
+                throw new \Exception('miss complex primary data');
             }
         } elseif (false === $options) {
             // 用于子查询 不查询只返回SQL
@@ -568,14 +548,12 @@ class Model
      * @param array $resultSet 当前数据
      * @return array
      */
-    protected function _read_data_list($resultSet, $options)
-    {
+    protected function _read_data_list($resultSet, $options) {
         $resultSet = array_map([$this, '_read_data'], $resultSet);
         return $resultSet;
     }
     // 查询成功后的回调方法
-    protected function _after_select(&$resultSet, $options = [])
-    {}
+    protected function _after_select(&$resultSet, $options = []) {}
 
     /**
      * 获取一条记录的某个字段值
@@ -584,8 +562,7 @@ class Model
      * @param null   $sepa  字段数据间隔符号 NULL返回数组
      * @return array|mixed|null
      */
-    public function getField($field, $sepa = null)
-    {
+    public function getField($field, $sepa = null) {
         $options['field'] = $field;
         $options          = $this->_parseOptions($options);
         $field            = trim($field);
@@ -666,8 +643,7 @@ class Model
      * @param string $value  字段值
      * @return boolean
      */
-    public function setField($field, $value = '')
-    {
+    public function setField($field, $value = '') {
         if (is_array($field)) {
             $data = $field;
         } else {
@@ -685,12 +661,11 @@ class Model
      * @return boolean
      * @throws \think\Exception
      */
-    public function setInc($field, $step = 1, $lazyTime = 0)
-    {
+    public function setInc($field, $step = 1, $lazyTime = 0) {
         $condition = $this->options['where'];
         if (empty($condition)) {
             // 没有条件不做任何更新
-            throw new Exception('no data to update');
+            throw new \Exception('no data to update');
         }
         if ($lazyTime > 0) {
             // 延迟写入
@@ -714,12 +689,11 @@ class Model
      * @return boolean
      * @throws \think\Exception
      */
-    public function setDec($field, $step = 1, $lazyTime = 0)
-    {
+    public function setDec($field, $step = 1, $lazyTime = 0) {
         $condition = $this->options['where'];
         if (empty($condition)) {
             // 没有条件不做任何更新
-            throw new Exception('no data to update');
+            throw new \Exception('no data to update');
         }
         if ($lazyTime > 0) {
             // 延迟写入
@@ -743,8 +717,7 @@ class Model
      * @param integer $lazyTime  延时时间(s)
      * @return false|integer
      */
-    protected function lazyWrite($guid, $step, $lazyTime)
-    {
+    protected function lazyWrite($guid, $step, $lazyTime) {
         if (false !== ($value = Cache::get($guid))) {
             // 存在缓存写入数据
             if (NOW_TIME > Cache::get($guid . '_time') + $lazyTime) {
@@ -771,8 +744,7 @@ class Model
      * @access public
      * @return string
      */
-    public function buildSql()
-    {
+    public function buildSql() {
         return '( ' . $this->fetchSql(true)->select() . ' )';
     }
 
@@ -782,8 +754,7 @@ class Model
      * @param array $options 表达式参数
      * @return array
      */
-    protected function _parseOptions($options = [])
-    {
+    protected function _parseOptions($options = []) {
         if (is_array($options)) {
             $options = array_merge($this->options, $options);
         }
@@ -820,8 +791,7 @@ class Model
         return $options;
     }
     // 表达式过滤回调方法
-    protected function _options_filter(&$options)
-    {}
+    protected function _options_filter(&$options) {}
 
     /**
      * 数据类型检测
@@ -831,8 +801,7 @@ class Model
      * @param array $bind 参数绑定列表
      * @return void
      */
-    protected function _parseType(&$data, $key, &$bind)
-    {
+    protected function _parseType(&$data, $key, &$bind) {
         $binds      = $this->getTableInfo('', 'bind');
         $bind[$key] = [$data[$key], isset($binds[$key]) ? $binds[$key] : \PDO::PARAM_STR];
         $data[$key] = ':' . $key;
@@ -845,8 +814,7 @@ class Model
      * @return mixed
      * @throws \think\Exception
      */
-    public function find($options = [])
-    {
+    public function find($options = []) {
         $pk = $this->getPk();
         if (is_numeric($options) || is_string($options)) {
             $where[$pk]       = $options;
@@ -870,7 +838,7 @@ class Model
                 }
                 $options['where'] = $where;
             } else {
-                throw new Exception('miss complex primary data');
+                throw new \Exception('miss complex primary data');
             }
         }
         // 总是查找一条记录
@@ -916,8 +884,7 @@ class Model
      * @param array $data 当前数据
      * @return array
      */
-    protected function _read_data($data, $options = [])
-    {
+    protected function _read_data($data, $options = []) {
         // 检查字段映射
         if (!empty($this->map)) {
             foreach ($this->map as $key => $val) {
@@ -930,8 +897,7 @@ class Model
         return $data;
     }
     // 数据读取成功后的回调方法
-    protected function _after_find(&$result, $options = [])
-    {}
+    protected function _after_find(&$result, $options = []) {}
 
     /**
      * 创建数据对象 但不保存到数据库
@@ -941,8 +907,7 @@ class Model
      * @return mixed
      * @throws \think\Exception
      */
-    public function create($data = '', $type = '')
-    {
+    public function create($data = '', $type = '') {
         // 如果没有传值默认取POST数据
         if (empty($data)) {
             $data = \think\Input::post();
@@ -951,7 +916,7 @@ class Model
         }
         // 验证数据
         if (empty($data) || !is_array($data)) {
-            throw new Exception('invalid data type');
+            throw new \Exception('invalid data type');
         }
 
         // 状态
@@ -985,8 +950,7 @@ class Model
         return $data;
     }
     // 数据对象创建后的回调方法
-    protected function _create_filter(&$data)
-    {}
+    protected function _create_filter(&$data) {}
 
     /**
      * 切换当前的数据库连接
@@ -995,8 +959,7 @@ class Model
      * @param mixed $config  数据库连接信息
      * @return Model
      */
-    public function db($linkId = '', $config = '')
-    {
+    public function db($linkId = '', $config = '') {
         if ('' === $linkId && $this->db) {
             return $this->db;
         }
@@ -1019,16 +982,14 @@ class Model
         return $this;
     }
     // 数据库切换后回调方法
-    protected function _after_db()
-    {}
+    protected function _after_db() {}
 
     /**
      * 得到当前的数据对象名称
      * @access public
      * @return string
      */
-    public function getModelName()
-    {
+    public function getModelName() {
         if (empty($this->name)) {
             $this->name = basename(get_class($this));
         }
@@ -1040,8 +1001,7 @@ class Model
      * @access public
      * @return string
      */
-    public function getTableName()
-    {
+    public function getTableName() {
         if (empty($this->trueTableName)) {
             $tableName = !empty($this->tablePrefix) ? $this->tablePrefix : '';
             if (!empty($this->tableName)) {
@@ -1059,8 +1019,7 @@ class Model
      * @access public
      * @return string
      */
-    public function getError()
-    {
+    public function getError() {
         return $this->error;
     }
 
@@ -1069,8 +1028,7 @@ class Model
      * @access public
      * @return string
      */
-    public function getDbError()
-    {
+    public function getDbError() {
         return $this->db->getError();
     }
 
@@ -1079,8 +1037,7 @@ class Model
      * @access public
      * @return string
      */
-    public function getLastInsID()
-    {
+    public function getLastInsID() {
         return $this->db->getLastInsID();
     }
 
@@ -1089,8 +1046,7 @@ class Model
      * @access public
      * @return string
      */
-    public function getLastSql()
-    {
+    public function getLastSql() {
         return $this->db->getLastSql($this->name);
     }
 
@@ -1099,8 +1055,7 @@ class Model
      * @access public
      * @return mixed
      */
-    public function getPk()
-    {
+    public function getPk() {
         if (is_null($this->pk)) {
             $this->pk = $this->getTableInfo('', 'pk');
         }
@@ -1112,8 +1067,7 @@ class Model
      * @access public
      * @return array
      */
-    public function getFields()
-    {
+    public function getFields() {
         if (empty($this->fields)) {
             $this->fields = $this->getTableInfo('', 'fields');
         }
@@ -1127,8 +1081,7 @@ class Model
      * @param string $fetch 获取信息类型 包括 fields type bind pk
      * @return mixed
      */
-    public function getTableInfo($tableName = '', $fetch = '')
-    {
+    public function getTableInfo($tableName = '', $fetch = '') {
         $tableName = $tableName ?: $this->getTableName();
         $guid      = md5($tableName);
         $result    = Cache::get($guid);
@@ -1169,8 +1122,7 @@ class Model
      * @param array $bind 参数绑定
      * @return mixed
      */
-    public function query($sql, $bind = [])
-    {
+    public function query($sql, $bind = []) {
         $sql = $this->parseSql($sql);
         return $this->db->query($sql, $bind);
     }
@@ -1182,8 +1134,7 @@ class Model
      * @param array $bind 参数绑定
      * @return false | integer
      */
-    public function execute($sql, $bind = [])
-    {
+    public function execute($sql, $bind = []) {
         $sql = $this->parseSql($sql);
         return $this->db->execute($sql, $bind);
     }
@@ -1194,8 +1145,7 @@ class Model
      * @param string $sql  SQL指令
      * @return string
      */
-    protected function parseSql($sql)
-    {
+    protected function parseSql($sql) {
         // 分析表达式
         $sql = strtr($sql, ['__TABLE__' => $this->getTableName(), '__PREFIX__' => $this->tablePrefix]);
         $sql = $this->parseSqlTable($sql);
@@ -1210,8 +1160,7 @@ class Model
      * @return Model
      * @throws \think\Exception
      */
-    public function data($data = '')
-    {
+    public function data($data = '') {
         if ('' === $data && !empty($this->data)) {
             return $this->data;
         }
@@ -1220,7 +1169,7 @@ class Model
         } elseif (is_string($data)) {
             parse_str($data, $data);
         } elseif (!is_array($data)) {
-            throw new Exception('data type invalid', 10300);
+            throw new \Exception('data type invalid', 10300);
         }
         $this->data = $data;
         return $this;
@@ -1233,8 +1182,7 @@ class Model
      * @param string $type JOIN类型
      * @return Model
      */
-    public function _join($join, $type = 'INNER')
-    {
+    public function _join($join, $type = 'INNER') {
         if (is_array($join)) {
             foreach ($join as $key => &$_join) {
                 $_join = $this->parseSqlTable($_join);
@@ -1256,8 +1204,7 @@ class Model
      * @param string $type JOIN类型
      * @return Model
      */
-    public function join($join, $condition = null, $type = 'INNER')
-    {
+    public function join($join, $condition = null, $type = 'INNER') {
         if (empty($join)) {
             return $this;
         }
@@ -1321,8 +1268,7 @@ class Model
      * @return Model
      * @throws \think\Exception
      */
-    public function union($union, $all = false)
-    {
+    public function union($union, $all = false) {
         if (empty($union)) {
             return $this;
         }
@@ -1344,7 +1290,7 @@ class Model
                 $options = $union;
             }
         } else {
-            throw new Exception('data type invalid', 10300);
+            throw new \Exception('data type invalid', 10300);
         }
         $this->options['union'][] = $options;
         return $this;
@@ -1358,8 +1304,7 @@ class Model
      * @param string $type
      * @return Model
      */
-    public function cache($key = true, $expire = null, $type = '')
-    {
+    public function cache($key = true, $expire = null, $type = '') {
         // 增加快捷调用方式 cache(10) 等同于 cache(true, 10)
         if (is_numeric($key) && is_null($expire)) {
             $expire = $key;
@@ -1378,8 +1323,7 @@ class Model
      * @param boolean $except 是否排除
      * @return Model
      */
-    public function field($field, $except = false)
-    {
+    public function field($field, $except = false) {
         if (true === $field) {
             // 获取全部字段
             $fields = $this->getFields();
@@ -1403,8 +1347,7 @@ class Model
      * @param array $args 参数
      * @return Model
      */
-    public function scope($scope = '', $args = null)
-    {
+    public function scope($scope = '', $args = null) {
         if ('' === $scope) {
             if (isset($this->scope['default'])) {
                 // 默认的命名范围
@@ -1442,8 +1385,7 @@ class Model
      * @param mixed $where 条件表达式
      * @return Model
      */
-    public function where($where)
-    {
+    public function where($where) {
         if (is_string($where) && '' != $where) {
             $map            = [];
             $map['_string'] = $where;
@@ -1464,8 +1406,7 @@ class Model
      * @param mixed $length 查询数量
      * @return Model
      */
-    public function limit($offset, $length = null)
-    {
+    public function limit($offset, $length = null) {
         if (is_null($length) && strpos($offset, ',')) {
             list($offset, $length) = explode(',', $offset);
         }
@@ -1480,8 +1421,7 @@ class Model
      * @param mixed $listRows 每页数量
      * @return Model
      */
-    public function page($page, $listRows = null)
-    {
+    public function page($page, $listRows = null) {
         if (is_null($listRows) && strpos($page, ',')) {
             list($page, $listRows) = explode(',', $page);
         }
@@ -1495,8 +1435,7 @@ class Model
      * @param string $table 表名
      * @return Model
      */
-    public function table($table)
-    {
+    public function table($table) {
         if (is_array($table)) {
             $this->options['table'] = $table;
         } elseif (!empty($table)) {
@@ -1511,8 +1450,7 @@ class Model
      * @param mixed $using
      * @return Model
      */
-    public function using($using)
-    {
+    public function using($using) {
         if (is_array($using)) {
             $this->options['using'] = $using;
         } elseif (!empty($using)) {
@@ -1528,8 +1466,7 @@ class Model
      * @param string $order 排序
      * @return Model
      */
-    public function order($field, $order = null)
-    {
+    public function order($field, $order = null) {
         if (is_string($field) && !empty($field) && is_null($order)) {
             $this->options['order'][] = $field;
         } elseif (is_string($field) && !empty($field) && is_string($order)) {
@@ -1546,8 +1483,7 @@ class Model
      * @param string $group GROUP
      * @return Model
      */
-    public function group($group)
-    {
+    public function group($group) {
         $this->options['group'] = $group;
         return $this;
     }
@@ -1558,8 +1494,7 @@ class Model
      * @param string $having having
      * @return Model
      */
-    public function having($having)
-    {
+    public function having($having) {
         $this->options['having'] = $having;
         return $this;
     }
@@ -1570,8 +1505,7 @@ class Model
      * @param boolean $lock 是否lock
      * @return Model
      */
-    public function lock($lock = false)
-    {
+    public function lock($lock = false) {
         $this->options['lock'] = $lock;
         return $this;
     }
@@ -1582,8 +1516,7 @@ class Model
      * @param string $distinct 是否唯一
      * @return Model
      */
-    public function distinct($distinct)
-    {
+    public function distinct($distinct) {
         $this->options['distinct'] = $distinct;
         return $this;
     }
@@ -1594,8 +1527,7 @@ class Model
      * @param string $alias 数据表别名
      * @return Model
      */
-    public function alias($alias)
-    {
+    public function alias($alias) {
         $this->options['alias'] = $alias;
         return $this;
     }
@@ -1606,8 +1538,7 @@ class Model
      * @param string $filter 指定过滤方法
      * @return Model
      */
-    public function filter($filter)
-    {
+    public function filter($filter) {
         $this->options['filter'] = $filter;
         return $this;
     }
@@ -1618,8 +1549,7 @@ class Model
      * @param string $index 索引名称
      * @return Model
      */
-    public function index($index)
-    {
+    public function index($index) {
         $this->options['index'] = $index;
         return $this;
     }
@@ -1630,8 +1560,7 @@ class Model
      * @param string $force 索引名称
      * @return Model
      */
-    public function force($force)
-    {
+    public function force($force) {
         $this->options['force'] = $force;
         return $this;
     }
@@ -1643,8 +1572,7 @@ class Model
      * @param mixed $value  绑定的变量及绑定参数
      * @return Model
      */
-    public function bind($key, $value = false)
-    {
+    public function bind($key, $value = false) {
         if (is_array($key)) {
             $this->options['bind'] = $key;
         } else {
@@ -1666,8 +1594,7 @@ class Model
      * @param string $comment 注释
      * @return Model
      */
-    public function comment($comment)
-    {
+    public function comment($comment) {
         $this->options['comment'] = $comment;
         return $this;
     }
@@ -1678,8 +1605,7 @@ class Model
      * @param boolean $fetch 是否返回sql
      * @return Model
      */
-    public function fetchSql($fetch = true)
-    {
+    public function fetchSql($fetch = true) {
         $this->options['fetch_sql'] = $fetch;
         return $this;
     }
@@ -1691,8 +1617,7 @@ class Model
      * @param string $name 映射的字段
      * @return Model
      */
-    public function map($map, $name = '')
-    {
+    public function map($map, $name = '') {
         if (is_array($map)) {
             $this->map = array_merge($this->map, $map);
         } else {
@@ -1706,8 +1631,7 @@ class Model
      * @access public
      * @return Model
      */
-    public function master()
-    {
+    public function master() {
         $this->options['master'] = true;
         return $this;
     }
@@ -1718,8 +1642,7 @@ class Model
      * @param string $sql sql语句
      * @return string
      */
-    protected function parseSqlTable($sql)
-    {
+    protected function parseSqlTable($sql) {
         if (false !== strpos($sql, '__')) {
             $prefix = $this->tablePrefix;
             $sql    = preg_replace_callback("/__([A-Z0-9_-]+)__/sU", function ($match) use ($prefix) {

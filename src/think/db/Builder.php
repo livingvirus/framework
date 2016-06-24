@@ -92,7 +92,7 @@ abstract class Builder
         foreach ($data as $key => $val) {
             if (!in_array($key, $fields, true)) {
                 if ($options['strict']) {
-                    throw new Exception(' fields not exists :[' . $key . ']');
+                    throw new \Exception(' fields not exists :[' . $key . ']');
                 }
             } else {
                 $item = $this->parseKey($key);
@@ -303,7 +303,7 @@ abstract class Builder
             if (isset($this->exp[$exp])) {
                 $exp = $this->exp[$exp];
             } else {
-                throw new Exception('where express error:' . $exp);
+                throw new \Exception('where express error:' . $exp);
             }
         }
 
@@ -574,7 +574,7 @@ abstract class Builder
             foreach ($data as $key => $val) {
                 if (!in_array($key, $fields, true)) {
                     if ($options['strict']) {
-                        throw new Exception(' fields not exists :[' . $key . ']');
+                        throw new \Exception(' fields not exists :[' . $key . ']');
                     }
                     unset($data[$key]);
                 } else {

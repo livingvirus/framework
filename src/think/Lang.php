@@ -11,16 +11,14 @@
 
 namespace think;
 
-class Lang
-{
+class Lang {
     // 语言参数
     private static $lang = [];
     // 语言作用域
     private static $range = 'zh-cn';
 
     // 设定语言参数的作用域（语言）
-    public static function range($range = '')
-    {
+    public static function range($range = '') {
         if ('' == $range) {
             return self::$range;
         } else {
@@ -35,8 +33,7 @@ class Lang
      * @param string $range 作用域
      * @return mixed
      */
-    public static function set($name, $value = null, $range = '')
-    {
+    public static function set($name, $value = null, $range = '') {
         $range = $range ?: self::$range;
         // 批量定义
         if (!isset(self::$lang[$range])) {
@@ -55,8 +52,7 @@ class Lang
      * @param string $range 作用域
      * @return mixed
      */
-    public static function load($file, $range = '')
-    {
+    public static function load($file, $range = '') {
         $range = $range ?: self::$range;
         if (!isset(self::$lang[$range])) {
             self::$lang[$range] = [];
@@ -85,8 +81,7 @@ class Lang
      * @param string $range 作用域
      * @return mixed
      */
-    public static function get($name = null, $vars = [], $range = '')
-    {
+    public static function get($name = null, $vars = [], $range = '') {
         $range = $range ?: self::$range;
         // 空参数返回所有定义
         if (empty($name)) {
@@ -109,8 +104,7 @@ class Lang
      * 自动侦测设置获取语言选择
      * @return void
      */
-    public static function detect()
-    {
+    public static function detect() {
         // 自动侦测设置获取语言选择
         $langCookieVar = Config::get('lang_cookie_var');
         $langDetectVar = Config::get('lang_detect_var');

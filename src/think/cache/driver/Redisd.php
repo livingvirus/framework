@@ -84,7 +84,7 @@ class Redisd
     public function __construct($options = [])
     {
         if (!extension_loaded('redis')) {
-            throw new Exception('_NOT_SUPPERT_:redis');
+            throw new \Exception('_NOT_SUPPERT_:redis');
         }
 
         $this->options         = $options         = array_merge($this->options, $options);
@@ -161,7 +161,7 @@ class Redisd
             //主节点挂了以后，尝试连接主备，断开主备的主从连接进行升主
             if ($master) {
                 if (!count($this->options["server_master_failover"])) {
-                    throw new Exception("redisd master: no more server_master_failover. {$host}:{$port} : " . $e->getMessage());
+                    throw new \Exception("redisd master: no more server_master_failover. {$host}:{$port} : " . $e->getMessage());
                     return false;
                 }
 
@@ -184,7 +184,7 @@ class Redisd
                 //如果无可用节点，则抛出异常
                 if (!count($this->options["server_slave"])) {
                     Log::record("已无可用Redis读节点", Log::ERROR);
-                    throw new Exception("redisd slave: no more server_slave. {$host}:{$port} : " . $e->getMessage());
+                    throw new \Exception("redisd slave: no more server_slave. {$host}:{$port} : " . $e->getMessage());
                     return false;
                 } else {
                     Log::record("salve {$host}:{$port} is down, try another one.", Log::ALERT);
@@ -192,7 +192,7 @@ class Redisd
                 }
             }
         } catch (\Exception $e) {
-            throw new Exception($e->getMessage(), $e->getCode());
+            throw new \Exception($e->getMessage(), $e->getCode());
         }
 
         self::$redis_rw_handler[$master] = $this->handler;

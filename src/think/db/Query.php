@@ -76,7 +76,7 @@ class Query
             $where[$name] = $args[0];
             return $this->where($where)->value($args[1]);
         } else {
-            throw new Exception(__CLASS__ . ':' . $method . ' method not exist');
+            throw new \Exception(__CLASS__ . ':' . $method . ' method not exist');
         }
     }
 
@@ -442,7 +442,7 @@ class Query
         $condition = !empty($this->options['where']) ? $this->options['where'] : [];
         if (empty($condition)) {
             // 没有条件不做任何更新
-            throw new Exception('no data to update');
+            throw new \Exception('no data to update');
         }
         if ($lazyTime > 0) {
             // 延迟写入
@@ -469,7 +469,7 @@ class Query
         $condition = !empty($this->options['where']) ? $this->options['where'] : [];
         if (empty($condition)) {
             // 没有条件不做任何更新
-            throw new Exception('no data to update');
+            throw new \Exception('no data to update');
         }
         if ($lazyTime > 0) {
             // 延迟写入
@@ -1353,7 +1353,7 @@ class Query
                     $attr         = isset($alias) ? $alias . '.' . $key : $key;
                     $where[$attr] = $data[$key];
                 } else {
-                    throw new Exception('miss complex primary data');
+                    throw new \Exception('miss complex primary data');
                 }
             }
             $options['where']['AND'] = $where;
@@ -1453,14 +1453,14 @@ class Query
                         $where[$field] = $data[$field];
                     } else {
                         // 如果缺少复合主键数据则不执行
-                        throw new Exception('miss pk data');
+                        throw new \Exception('miss pk data');
                     }
                     unset($data[$field]);
                 }
             }
             if (!isset($where)) {
                 // 如果没有任何更新条件则不执行
-                throw new Exception('miss update condition');
+                throw new \Exception('miss update condition');
             } else {
                 $options['where']['AND'] = $where;
             }
@@ -1709,7 +1709,7 @@ class Query
 
         if (empty($options['where'])) {
             // 如果条件为空 不进行删除操作 除非设置 1=1
-            throw new Exception('no data to delete without where');
+            throw new \Exception('no data to delete without where');
         }
         // 生成删除SQL语句
         $sql = $this->builder()->delete($options);

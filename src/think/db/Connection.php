@@ -268,7 +268,7 @@ abstract class Connection
                     Log::record($e->getMessage(), 'error');
                     return $this->connect($autoConnection, $linkNum);
                 } else {
-                    throw new Exception($e->getMessage());
+                    throw new \Exception($e->getMessage());
                 }
             }
         }

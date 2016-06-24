@@ -427,7 +427,7 @@ class Template
         $content = preg_replace('/(<\?(?!php|=|$))/i', '<?php echo \'\\1\'; ?>' . "\n", $content);
         // PHP语法检查
         if ($this->config['tpl_deny_php'] && false !== strpos($content, '<?php')) {
-            throw new Exception('not allow php tag', 11600);
+            throw new \Exception('not allow php tag', 11600);
         }
         return;
     }
@@ -1065,7 +1065,7 @@ class Template
             $this->includeFile[$template] = filemtime($template);
             return $template;
         } else {
-            throw new Exception('template not exist:' . $template, 10700);
+            throw new \Exception('template not exist:' . $template, 10700);
         }
     }
 

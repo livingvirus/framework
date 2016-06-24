@@ -12,9 +12,6 @@
 
 namespace think;
 
-use think\Config;
-use think\Input;
-
 class Request {
 
     /**
@@ -29,10 +26,10 @@ class Request {
 
     /**
      * @var string 请求方法
-      'GET'    => 'get',
-      'POST'   => 'post',
-      'PUT'    => 'put',
-      'DELETE' => 'delete',
+    'GET'    => 'get',
+    'POST'   => 'post',
+    'PUT'    => 'put',
+    'DELETE' => 'delete',
      */
     protected $method;
 
@@ -91,28 +88,28 @@ class Request {
      */
     public $param;
     protected $session = [];
-    protected $file = [];
-    protected $cookie = [];
-    protected $server = [];
+    protected $file    = [];
+    protected $cookie  = [];
+    protected $server  = [];
 
     /**
      * @var array 资源类型
      */
     protected $mimeType = [
         'html' => 'text/html,application/xhtml+xml,*/*',
-        'xml' => 'application/xml,text/xml,application/x-xml',
+        'xml'  => 'application/xml,text/xml,application/x-xml',
         'json' => 'application/json,text/x-json,application/jsonrequest,text/json',
-        'js' => 'text/javascript,application/javascript,application/x-javascript',
-        'css' => 'text/css',
-        'rss' => 'application/rss+xml',
+        'js'   => 'text/javascript,application/javascript,application/x-javascript',
+        'css'  => 'text/css',
+        'rss'  => 'application/rss+xml',
         'yaml' => 'application/x-yaml,text/yaml',
         'atom' => 'application/atom+xml',
-        'pdf' => 'application/pdf',
+        'pdf'  => 'application/pdf',
         'text' => 'text/plain',
-        'png' => 'image/png',
-        'jpg' => 'image/jpg,image/jpeg,image/pjpeg',
-        'gif' => 'image/gif',
-        'csv' => 'text/csv',
+        'png'  => 'image/png',
+        'jpg'  => 'image/jpg,image/jpeg,image/pjpeg',
+        'gif'  => 'image/gif',
+        'csv'  => 'text/csv',
     ];
 
     /**
@@ -121,19 +118,20 @@ class Request {
      * @param array $options 参数
      */
     public function __construct() {
-        if (isset($_SERVER['HTTPS'])) {  //不考虑IIS
+        if (isset($_SERVER['HTTPS'])) {
+            //不考虑IIS
             $this->protocol = 'https';
         } else {
             $this->protocol = 'http';
         }
-        $this->domain = $_SERVER['HTTP_HOST'];
-        $this->port = $_SERVER['SERVER_PORT'];
-        $this->baseUrl = $_SERVER['REQUEST_URI'];
+        $this->domain   = $_SERVER['HTTP_HOST'];
+        $this->port     = $_SERVER['SERVER_PORT'];
+        $this->baseUrl  = $_SERVER['REQUEST_URI'];
         $this->pathInfo = $_SERVER['PATH_INFO'];
-        $this->ext = pathinfo($this->pathInfo, PATHINFO_EXTENSION); //后缀
-        $this->url = str_replace("." . $this->ext, '', str_replace('?' . $_SERVER['QUERY_STRING'], '', $_SERVER['REQUEST_URI']));
-        $this->method = $_SERVER['REQUEST_METHOD'];
-        $this->param = $_REQUEST;
+        $this->ext      = pathinfo($this->pathInfo, PATHINFO_EXTENSION); //后缀
+        $this->url      = str_replace("." . $this->ext, '', str_replace('?' . $_SERVER['QUERY_STRING'], '', $_SERVER['REQUEST_URI']));
+        $this->method   = $_SERVER['REQUEST_METHOD'];
+        $this->param    = $_REQUEST;
     }
 
     /**

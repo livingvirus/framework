@@ -130,7 +130,7 @@ abstract class Driver
                     Log::record($e->getMessage(), 'error');
                     return $this->connect($autoConnection, $linkNum);
                 } else {
-                    throw new Exception($e->getMessage());
+                    throw new \Exception($e->getMessage());
                 }
             }
         }
@@ -197,7 +197,7 @@ abstract class Driver
             $this->debug(false);
             return $this->getResult();
         } catch (\PDOException $e) {
-            throw new Exception($this->getError());
+            throw new \Exception($this->getError());
         }
     }
 
@@ -247,7 +247,7 @@ abstract class Driver
             }
             return $this->numRows;
         } catch (\PDOException $e) {
-            throw new Exception($this->getError());
+            throw new \Exception($this->getError());
         }
     }
 
@@ -292,7 +292,7 @@ abstract class Driver
                 $result = $this->PDOStatement->bindValue($param, $val);
             }
             if (!$result) {
-                throw new Exception('bind param error : [ ' . $param . '=>' . $val . ' ]');
+                throw new \Exception('bind param error : [ ' . $param . '=>' . $val . ' ]');
             }
         }
     }
@@ -330,7 +330,7 @@ abstract class Driver
                 $this->linkID->commit();
                 $this->transTimes = 0;
             } catch (\PDOException $e) {
-                throw new Exception($e->getMessage());
+                throw new \Exception($e->getMessage());
             }
         }
         return true;
@@ -349,7 +349,7 @@ abstract class Driver
                 $this->linkID->rollback();
                 $this->transTimes = 0;
             } catch (\PDOException $e) {
-                throw new Exception($e->getMessage());
+                throw new \Exception($e->getMessage());
             }
         }
         return true;
@@ -657,7 +657,7 @@ abstract class Driver
                     $data = is_string($val[1]) ? explode(',', $val[1]) : $val[1];
                     $whereStr .= $key . ' ' . $this->exp[$exp] . ' ' . $this->parseValue($data[0]) . ' AND ' . $this->parseValue($data[1]);
                 } else {
-                    throw new Exception('where express error:' . $val[0]);
+                    throw new \Exception('where express error:' . $val[0]);
                 }
             } else {
                 $count = count($val);

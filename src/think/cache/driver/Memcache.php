@@ -36,7 +36,7 @@ class Memcache
     public function __construct($options = [])
     {
         if (!extension_loaded('memcache')) {
-            throw new Exception('_NOT_SUPPERT_:memcache');
+            throw new \Exception('_NOT_SUPPERT_:memcache');
         }
         if (!empty($options)) {
             $this->options = array_merge($this->options, $options);

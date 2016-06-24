@@ -11,8 +11,7 @@
 
 namespace think;
 
-class Loader
-{
+class Loader {
     // 类名映射
     protected static $map = [];
     // 加载列表
@@ -31,8 +30,7 @@ class Loader
      * @param string $layer 业务层名称
      * @return Object
      */
-    public static function model($name = '', $layer = MODEL_LAYER)
-    {
+    public static function model($name = '', $layer = MODEL_LAYER) {
         if (empty($name)) {
             return new Model;
         }
@@ -69,8 +67,7 @@ class Loader
      * @param integer $type 转换类型
      * @return string
      */
-    public static function parseName($name, $type = 0)
-    {
+    public static function parseName($name, $type = 0) {
         if ($type) {
             return ucfirst(preg_replace_callback('/_([a-zA-Z])/', function ($match) {return strtoupper($match[1]);}, $name));
         } else {
@@ -85,8 +82,7 @@ class Loader
      * @param string $name 类名
      * @return string
      */
-    public static function parseClass($module, $layer, $name)
-    {
+    public static function parseClass($module, $layer, $name) {
         $name  = str_replace(['/', '.'], '\\', $name);
         $array = explode('\\', $name);
         $class = self::parseName(array_pop($array), 1);
