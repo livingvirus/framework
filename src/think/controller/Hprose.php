@@ -35,9 +35,8 @@ abstract class Hprose
         }
 
         //导入类库
-        \think\Loader::import('vendor.Hprose.HproseHttpServer');
         //实例化HproseHttpServer
-        $server = new \HproseHttpServer();
+        $server = new \Hprose\HproseHttpServer();
         if ($this->allowMethodList) {
             $methods = $this->allowMethodList;
         } else {

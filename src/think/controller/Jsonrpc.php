@@ -27,11 +27,8 @@ abstract class Jsonrpc
         if (method_exists($this, '_initialize')) {
             $this->_initialize();
         }
-
-        //导入类库
-        \think\Loader::import('vendor.jsonrpc.jsonRPCServer');
         // 启动server
-        \jsonRPCServer::handle($this);
+        jsonRPCServer::handle($this);
     }
 
     /**
