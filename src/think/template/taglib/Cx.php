@@ -543,6 +543,7 @@ class Cx extends Taglib
                         $parseStr .= '<link rel="stylesheet" type="text/css" href="' . $basepath . '/' . str_replace(['.', '#'], ['/', '.'], $val) . '.css' . ($version ? '?' . $version : '') . '" />';
                         break;
                     case 'php':
+						echo '此处需要替换';die;
                         $parseStr .= '<?php \think\Loader::import("' . $val . '"); ?>';
                         break;
                 }

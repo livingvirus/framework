@@ -67,12 +67,12 @@ class Query
     {
         if (strtolower(substr($method, 0, 5)) == 'getby') {
             // 根据某个字段获取记录
-            $field         = Loader::parseName(substr($method, 5));
+            $field         = substr($method, 5);
             $where[$field] = $args[0];
             return $this->where($where)->find();
         } elseif (strtolower(substr($method, 0, 10)) == 'getfieldby') {
             // 根据某个字段获取记录的某个值
-            $name         = Loader::parseName(substr($method, 10));
+            $name         = substr($method, 10);
             $where[$name] = $args[0];
             return $this->where($where)->value($args[1]);
         } else {
@@ -126,7 +126,7 @@ class Query
             $name      = $name ?: $this->name;
             $tableName = $this->connection->getConfig('prefix');
             if ($name) {
-                $tableName .= Loader::parseName($name);
+                $tableName .= $name;
             }
         } else {
             $tableName = $this->table;
@@ -1275,13 +1275,13 @@ class Query
             $info  = $model->getRelationInfo();
             if (in_array($info['type'], [Relation::HAS_ONE, Relation::BELONGS_TO])) {
                 if (0 == $i) {
-                    $name  = Loader::parseName(basename(str_replace('\\', '/', $currentModel)));
+                    $name  = basename(str_replace('\\', '/', $currentModel));
                     $table = $this->getTable();
                     $this->table($table)->alias($name)->field(true, false, $table, $name);
                 }
                 // 预载入封装
                 $joinTable = $model->getTable();
-                $joinName  = Loader::parseName(basename(str_replace('\\', '/', $info['model'])));
+                $joinName  = basename(str_replace('\\', '/', $info['model']));
                 $this->via($joinName);
                 $this->join($joinTable . ' ' . $joinName, $name . '.' . $info['localKey'] . '=' . $joinName . '.' . $info['foreignKey'])->field(true, false, $joinTable, $joinName, $joinName . '__');
                 if ($closure) {

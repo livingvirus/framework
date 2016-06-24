@@ -148,7 +148,7 @@ trait Relation
                         $mappingFk = !empty($val['foreign_key']) ? $val['foreign_key'] : strtolower($this->name) . '_id'; //  关联外键
                     }
                     // 获取关联模型对象
-                    $model = \think\Loader::model($mappingClass);
+                    $model = new Model($mappingClass);
                     switch ($mappingType) {
                         case HAS_ONE:
                             $pk = $result[$mappingKey];
