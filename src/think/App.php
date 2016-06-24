@@ -74,7 +74,7 @@ class App {
             $class    = MODULE_NAME . "\\" . CONTROLLER_LAYER . "\\" . CONTROLLER_NAME;
             $instance = new $class;
             // 操作方法开始监听
-            return $data = self::invokeMethod([$instance, ACTION_NAME], $args);
+            return $data = self::invokeMethod([$instance, ACTION_NAME], $result['args']);
         } catch (\ReflectionException $e) {
             throw new \Exception($e);
         }

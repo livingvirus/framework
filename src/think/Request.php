@@ -22,7 +22,7 @@ class Request {
     /**
      * @var string 协议
      */
-    protected $protocol;
+    public $protocol;
 
     /**
      * @var string 请求方法
@@ -31,52 +31,42 @@ class Request {
     'PUT'    => 'put',
     'DELETE' => 'delete',
      */
-    protected $method;
+    public $method;
 
     /**
      * @var string 域名
      */
-    protected $domain;
+    public $domain;
 
     /**
      * @var string 端口
      */
-    protected $port;
+    public $port;
 
     /**
      * @var string URL地址
      */
-    protected $baseUrl;
+    public $baseUrl;
 
     /**
      * @var string pathinfo
      */
-    protected $pathInfo;
+    public $pathInfo;
 
     /**
      * @var string pathinfo（不含后缀）
      */
-    protected $pathinfo;
+    public $pathinfo;
 
     /**
      * @var string 当前执行的文件
      */
-    protected $baseFile;
+    public $baseFile;
 
     /**
      * @var string 访问的ROOT地址
      */
-    protected $root;
-
-    /**
-     * @var array 路由
-     */
-    protected $route = [];
-
-    /**
-     * @var array 调度信息
-     */
-    protected $dispatch = [];
+    public $root;
 
     /**
      * @var array 后缀信息
@@ -87,15 +77,15 @@ class Request {
      * @var array 请求参数
      */
     public $param;
-    protected $session = [];
-    protected $file    = [];
-    protected $cookie  = [];
-    protected $server  = [];
+    public $session = [];
+    public $file    = [];
+    public $cookie  = [];
+    public $server  = [];
 
     /**
      * @var array 资源类型
      */
-    protected $mimeType = [
+    public $mimeType = [
         'html' => 'text/html,application/xhtml+xml,*/*',
         'xml'  => 'application/xml,text/xml,application/x-xml',
         'json' => 'application/json,text/x-json,application/jsonrequest,text/json',
@@ -146,7 +136,6 @@ class Request {
         }
         return self::$instance;
     }
-
     /**
      * 获取当前请求的时间
      * @access public
@@ -156,42 +145,4 @@ class Request {
     public function time($float = false) {
         return $float ? $_SERVER['REQUEST_TIME_FLOAT'] : $_SERVER['REQUEST_TIME'];
     }
-
-    /**
-     * 当前请求的资源类型
-     * @access public
-     * @return false|string
-     */
-    public function type() {
-        if (!isset($_SERVER['HTTP_ACCEPT'])) {
-            return false;
-        }
-
-        foreach ($this->mimeType as $key => $val) {
-            $array = explode(',', $val);
-            foreach ($array as $k => $v) {
-                if (stristr($_SERVER['HTTP_ACCEPT'], $v)) {
-                    return $key;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * 设置资源类型
-     * @access public
-     * @param string|array $type 资源类型名
-     * @param string $val 资源类型
-     * @return void
-     */
-    public function mimeType($type, $val = '') {
-        if (is_array($type)) {
-
-            $this->mimeType = array_merge($this->mimeType, $type);
-        } else {
-            $this->mimeType[$type] = $val;
-        }
-    }
-
 }
