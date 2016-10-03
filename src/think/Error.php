@@ -6,128 +6,112 @@
 // +----------------------------------------------------------------------
 // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
 // +----------------------------------------------------------------------
-// | Author: liu21st <liu21st@gmail.com>
+// | Author: 麦当苗儿 <zuojiazi@vip.qq.com> <http://zjzit.cn>
 // +----------------------------------------------------------------------
 
 namespace think;
 
+use think\console\Output as ConsoleOutput;
+use think\exception\ErrorException;
+use think\exception\Handle;
+use think\exception\ThrowableError;
+
 class Error
 {
     /**
-     * 自定义异常处理
-     * @access public
-     * @param mixed $e 异常对象
+     * 注册异常处理
+     * @return void
+     */
+    public static function register()
+    {
+        error_reporting(E_ALL);
+        set_error_handler([__CLASS__, 'appError']);
+        set_exception_handler([__CLASS__, 'appException']);
+        register_shutdown_function([__CLASS__, 'appShutdown']);
+    }
+
+    /**
+     * Exception Handler
+     * @param  \Exception|\Throwable $e
      */
     public static function appException($e)
     {
-        $error = [
-            'message' => $e->getMessage(),
-            'file'    => $e->getFile(),
-            'line'    => $e->getLine(),
-            'trace'   => $e->getTraceAsString(),
-            'code'    => $e->getCode(),
-        ];
-        // 发送http状态信息
-        http_response_code(Config::get('exception_http_status'));
-        // 输出异常页面
-        self::halt($error);
-    }
+        if (!$e instanceof \Exception) {
+            $e = new ThrowableError($e);
+        }
 
-    /**
-     * 自定义错误处理
-     * @access public
-     * @param int    $error_number 错误类型
-     * @param string $error_string 错误信息
-     * @param string $error_file   错误文件
-     * @param int    $error_line   错误行数
-     * @return void
-     */
-    public static function appError($error_number, $error_string, $error_file, $error_line)
-    {
-        $errorStr = "[{$error_number}] {$error_string} {$error_file} 第 {$error_line} 行.";
-        switch ($error_number) {
-            case E_USER_ERROR:
-                self::halt($errorStr, $error_number);
-                break;
-            case E_STRICT:
-            case E_USER_WARNING:
-            case E_USER_NOTICE:
-            default:
-                Log::record($errorStr, 'notic');
-                break;
+        self::getExceptionHandler()->report($e);
+        if (IS_CLI) {
+            self::getExceptionHandler()->renderForConsole(new ConsoleOutput, $e);
+        } else {
+            self::getExceptionHandler()->render($e)->send();
         }
     }
 
     /**
-     * 应用关闭处理
-     * @return void
+     * Error Handler
+     * @param  integer $errno   错误编号
+     * @param  integer $errstr  详细错误信息
+     * @param  string  $errfile 出错的文件
+     * @param  integer $errline 出错行号
+     * @param array    $errcontext
+     * @throws ErrorException
+     */
+    public static function appError($errno, $errstr, $errfile = '', $errline = 0, $errcontext = [])
+    {
+        $exception = new ErrorException($errno, $errstr, $errfile, $errline, $errcontext);
+        if (error_reporting() & $errno) {
+            // 将错误信息托管至 think\exception\ErrorException
+            throw $exception;
+        } else {
+            self::getExceptionHandler()->report($exception);
+        }
+    }
+
+    /**
+     * Shutdown Handler
      */
     public static function appShutdown()
     {
-        // 记录日志
-        Log::save();
-        if ($e = error_get_last()) {
-            switch ($e['type']) {
-                case E_ERROR:
-                case E_PARSE:
-                case E_CORE_ERROR:
-                case E_COMPILE_ERROR:
-                case E_USER_ERROR:
-                    ob_end_clean();
-                    self::halt($e);
-                    break;
-            }
+        if (!is_null($error = error_get_last()) && self::isFatal($error['type'])) {
+            // 将错误信息托管至think\ErrorException
+            $exception = new ErrorException($error['type'], $error['message'], $error['file'], $error['line']);
+
+            self::appException($exception);
         }
+
+        // 写入日志
+        Log::save();
     }
 
     /**
-     * 错误输出
+     * 确定错误类型是否致命
      *
-     * @param mixed $error 错误
-     * @param int   $code
+     * @param  int $type
+     * @return bool
      */
-    public static function halt($error, $code = 1)
+    protected static function isFatal($type)
     {
-        $message = is_array($error) ? $error['message'] : $error;
-        $code    = isset($error['code']) ? $error['code'] : $code;
+        return in_array($type, [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE]);
+    }
 
-        if (APP_DEBUG) {
-            //调试模式下输出错误信息
-            if (!is_array($error)) {
-                $trace        = debug_backtrace();
-                $e['message'] = $error;
-                $e['code']    = $code;
-                $e['file']    = $trace[0]['file'];
-                $e['line']    = $trace[0]['line'];
-                ob_start();
-                debug_print_backtrace();
-                $e['trace'] = ob_get_clean();
+    /**
+     * Get an instance of the exception handler.
+     *
+     * @return Handle
+     */
+    public static function getExceptionHandler()
+    {
+        static $handle;
+        if (!$handle) {
+            // 异常处理handle
+            $class = Config::get('exception_handle');
+            if ($class && class_exists($class) && is_subclass_of($class, "\\think\\exception\\Handle")) {
+                $handle = new $class;
             } else {
-                $e = $error;
+                $handle = new Handle;
             }
-        } else {
-            //否则定向到错误页面
-            $error_page = Config::get('error_page');
-            if (!empty($error_page)) {
-                header('Location: ' . $error_page);
-            } else {
-                $e['code']    = $code;
-                $e['message'] = Config::get('show_error_msg') ? $message : Config::get('error_message');
-            }
-            //$e = ['message' => $message, 'code' => $code];
         }
-        // 记录异常日志
-        Log::write('[' . $e['code'] . '] ' . $e['message'] . '[' . $e['file'] . ' : ' . $e['line'] . ']', 'error');
-
-        $type = Config::get('default_return_type');
-        if ('html' == $type) {
-            include Config::get('exception_tmpl');
-        } else {
-            // 异常信息输出监听
-            APP_HOOK && Hook::listen('error_output', $e);
-            // 输出异常内容
-			Response::send($e, $type, Config::get('response_return'));
-        }
-        exit;
+        return $handle;
     }
 }

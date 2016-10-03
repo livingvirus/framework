@@ -45,20 +45,24 @@ class Pgsql extends Connection
     {
         $this->initConnect(true);
         list($tableName) = explode(' ', $tableName);
-        $sql             = 'select fields_name as "field",fields_type as "type",fields_not_null as "null",fields_key_name as "key",fields_default as "default",fields_default as "extra" from table_msg(' . $tableName . ');';
-        $pdo             = $this->linkID->query($sql);
-        $result          = $pdo->fetchAll(PDO::FETCH_ASSOC);
-        $info            = [];
+        $sql             = 'select fields_name as "field",fields_type as "type",fields_not_null as "null",fields_key_name as "key",fields_default as "default",fields_default as "extra" from table_msg(\'' . $tableName . '\');';
+        // 调试开始
+        $this->debug(true);
+        $pdo = $this->linkID->query($sql);
+        // 调试结束
+        $this->debug(false, $sql);
+        $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
+        $info   = [];
         if ($result) {
             foreach ($result as $key => $val) {
                 $val                 = array_change_key_case($val);
                 $info[$val['field']] = [
                     'name'    => $val['field'],
                     'type'    => $val['type'],
-                    'notnull' => (bool) ('' === $val['null']), // not null is empty, null is yes
+                    'notnull' => (bool) ('' !== $val['null']),
                     'default' => $val['default'],
-                    'primary' => (strtolower($val['key']) == 'pri'),
-                    'autoinc' => (strtolower($val['extra']) == 'auto_increment'),
+                    'primary' => !empty($val['key']),
+                    'autoinc' => (0 === strpos($val['extra'], 'nextval(')),
                 ];
             }
         }
@@ -73,8 +77,13 @@ class Pgsql extends Connection
      */
     public function getTables($dbName = '')
     {
-        $sql    = "select tablename as Tables_in_test from pg_tables where  schemaname ='public'";
-        $pdo    = $this->linkID->query($sql);
+        $this->initConnect(true);
+        $sql = "select tablename as Tables_in_test from pg_tables where  schemaname ='public'";
+        // 调试开始
+        $this->debug(true);
+        $pdo = $this->linkID->query($sql);
+        // 调试结束
+        $this->debug(false, $sql);
         $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
         $info   = [];
         foreach ($result as $key => $val) {
@@ -92,5 +101,10 @@ class Pgsql extends Connection
     protected function getExplain($sql)
     {
         return [];
+    }
+
+    protected function supportSavepoint()
+    {
+        return true;
     }
 }

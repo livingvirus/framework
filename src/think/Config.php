@@ -29,27 +29,27 @@ class Config
 
     /**
      * 解析配置文件或内容
-     *
-     * @param string $config 配置文件路径或内容
-     * @param string $type 配置解析类型
-     * @param string $range  作用域
+     * @param string    $config 配置文件路径或内容
+     * @param string    $type 配置解析类型
+     * @param string    $name 配置名（如设置即表示二级配置）
+     * @param string    $range  作用域
+     * @return mixed
      */
-    public static function parse($config, $type = '', $range = '')
+    public static function parse($config, $type = '', $name = '', $range = '')
     {
         $range = $range ?: self::$range;
         if (empty($type)) {
             $type = pathinfo($config, PATHINFO_EXTENSION);
         }
-        $class = (false === strpos($type, '\\')) ? '\\think\\config\\driver\\' . ucwords($type) : $type;
-        self::set((new $class())->parse($config), '', $range);
+        $class = false !== strpos($type, '\\') ? $type : '\\think\\config\\driver\\' . ucwords($type);
+        return self::set((new $class())->parse($config), $name, $range);
     }
 
     /**
      * 加载配置文件（PHP格式）
-     *
-     * @param string $file 配置文件名
-     * @param string $name 配置名（如设置即表示二级配置）
-     * @param string $range  作用域
+     * @param string    $file 配置文件名
+     * @param string    $name 配置名（如设置即表示二级配置）
+     * @param string    $range  作用域
      * @return mixed
      */
     public static function load($file, $name = '', $range = '')
@@ -58,16 +58,47 @@ class Config
         if (!isset(self::$config[$range])) {
             self::$config[$range] = [];
         }
-        // 记录加载信息
-        APP_DEBUG && Log::record('[ CONFIG ] ' . $file, 'info');
-        return is_file($file) ? self::set(include $file, $name, $range) : self::$config[$range];
+        if (is_file($file)) {
+            $type = pathinfo($file, PATHINFO_EXTENSION);
+            if ('php' != $type) {
+                return self::parse($file, $type, $name, $range);
+            } else {
+                return self::set(include $file, $name, $range);
+            }
+        } else {
+            return self::$config[$range];
+        }
+    }
+
+    /**
+     * 加载配置文件（PHP格式）
+     * @param string    $file 配置文件名
+     * @param string    $name 配置名（如设置即表示二级配置）
+     * @param string    $range  作用域
+     * @return mixed
+     */
+    public static function load($file, $name = '', $range = '')
+    {
+        $range = $range ?: self::$range;
+        if (!isset(self::$config[$range])) {
+            self::$config[$range] = [];
+        }
+        if (is_file($file)) {
+            $type = pathinfo($file, PATHINFO_EXTENSION);
+            if ('php' != $type) {
+                return self::parse($file, $type, $name, $range);
+            } else {
+                return self::set(include $file, $name, $range);
+            }
+        } else {
+            return self::$config[$range];
+        }
     }
 
     /**
      * 检测配置是否存在
-     *
-     * @param string $name 配置参数名（支持二级配置 .号分割）
-     * @param string $range  作用域
+     * @param string    $name 配置参数名（支持二级配置 .号分割）
+     * @param string    $range  作用域
      * @return bool
      */
     public static function has($name, $range = '')
@@ -75,19 +106,18 @@ class Config
         $range = $range ?: self::$range;
 
         if (!strpos($name, '.')) {
-            return isset(self::$config[$range][$name]);
+            return isset(self::$config[$range][strtolower($name)]);
         } else {
             // 二维数组设置和获取支持
             $name = explode('.', $name);
-            return isset(self::$config[$range][$name[0]][$name[1]]);
+            return isset(self::$config[$range][strtolower($name[0])][$name[1]]);
         }
     }
 
     /**
      * 获取配置参数 为空则获取所有配置
-     *
-     * @param string $name 配置参数名（支持二级配置 .号分割）
-     * @param string $range  作用域
+     * @param string    $name 配置参数名（支持二级配置 .号分割）
+     * @param string    $range  作用域
      * @return mixed
      */
     public static function get($name = null, $range = '')
@@ -97,29 +127,23 @@ class Config
         if (empty($name) && isset(self::$config[$range])) {
             return self::$config[$range];
         }
+
         if (!strpos($name, '.')) {
-            // 判断环境变量
-            if (isset($_ENV['T_' . $name])) {
-                return $_ENV['T_' . $name];
-            }
+            $name = strtolower($name);
             return isset(self::$config[$range][$name]) ? self::$config[$range][$name] : null;
         } else {
             // 二维数组设置和获取支持
-            $name = explode('.', $name);
-            // 判断环境变量
-            if (isset($_ENV['T_' . $name[0] . '_' . $name[1]])) {
-                return $_ENV['T_' . $name[0] . '_' . $name[1]];
-            }
+            $name    = explode('.', $name);
+            $name[0] = strtolower($name[0]);
             return isset(self::$config[$range][$name[0]][$name[1]]) ? self::$config[$range][$name[0]][$name[1]] : null;
         }
     }
 
     /**
      * 设置配置参数 name为数组则为批量设置
-     *
-     * @param string $name 配置参数名（支持二级配置 .号分割）
-     * @param mixed $value 配置值
-     * @param string $range  作用域
+     * @param string|array  $name 配置参数名（支持二级配置 .号分割）
+     * @param mixed         $value 配置值
+     * @param string        $range  作用域
      * @return mixed
      */
     public static function set($name, $value = null, $range = '')
@@ -130,17 +154,20 @@ class Config
         }
         if (is_string($name)) {
             if (!strpos($name, '.')) {
-                self::$config[$range][$name] = $value;
+                self::$config[$range][strtolower($name)] = $value;
             } else {
                 // 二维数组设置和获取支持
-                $name                                     = explode('.', $name);
-                self::$config[$range][$name[0]][$name[1]] = $value;
+                $name                                                 = explode('.', $name);
+                self::$config[$range][strtolower($name[0])][$name[1]] = $value;
             }
             return;
         } elseif (is_array($name)) {
             // 批量设置
             if (!empty($value)) {
-                return self::$config[$range][$value] = array_change_key_case($name);
+                self::$config[$range][$value] = isset(self::$config[$range][$value]) ?
+                array_merge(self::$config[$range][$value], $name) :
+                self::$config[$range][$value] = $name;
+                return self::$config[$range][$value];
             } else {
                 return self::$config[$range] = array_merge(self::$config[$range], array_change_key_case($name));
             }
@@ -155,7 +182,11 @@ class Config
      */
     public static function reset($range = '')
     {
-        $range                          = $range ?: self::$range;
-        true === $range ? self::$config = [] : self::$config[$range] = [];
+        $range = $range ?: self::$range;
+        if (true === $range) {
+            self::$config = [];
+        } else {
+            self::$config[$range] = [];
+        }
     }
 }

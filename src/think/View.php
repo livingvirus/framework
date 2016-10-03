@@ -61,7 +61,6 @@ class View
     {
         if (is_array($name)) {
             $this->data = array_merge($this->data, $name);
-            return $this;
         } else {
             $this->data[$name] = $value;
         }
@@ -83,7 +82,7 @@ class View
             $type = !empty($options['type']) ? $options['type'] : 'Think';
         }
 
-        $class = (!empty($options['namespace']) ? $options['namespace'] : '\\think\\view\\driver\\') . ucfirst($type);
+        $class = false !== strpos($type, '\\') ? $type : '\\think\\view\\driver\\' . ucfirst($type);
         if (isset($options['type'])) {
             unset($options['type']);
         }
@@ -92,12 +91,25 @@ class View
     }
 
     /**
+     * 配置模板引擎
+     * @access private
+     * @param string|array  $name 参数名
+     * @param mixed         $value 参数值
+     * @return void
+     */
+    public function config($name, $value = null)
+    {
+        $this->engine->config($name, $value);
+        return $this;
+    }
+
+    /**
      * 解析和获取模板内容 用于输出
-     * @param string $template 模板文件名或者内容
-     * @param array  $vars     模板输出变量
-     * @param array  $replace 替换内容
-     * @param array  $config     模板参数
-     * @param bool  $renderContent     是否渲染内容
+     * @param string    $template 模板文件名或者内容
+     * @param array     $vars     模板输出变量
+     * @param array     $replace 替换内容
+     * @param array     $config     模板参数
+     * @param bool      $renderContent     是否渲染内容
      * @return string
      * @throws Exception
      */
@@ -117,7 +129,7 @@ class View
         // 获取并清空缓存
         $content = ob_get_clean();
         // 内容过滤标签
-        APP_HOOK && Hook::listen('view_filter', $content);
+        Hook::listen('view_filter', $content);
         // 允许用户自定义模板的字符串替换
         $replace = array_merge($this->replace, $replace);
         if (!empty($replace)) {
@@ -129,8 +141,8 @@ class View
     /**
      * 视图内容替换
      * @access public
-     * @param string|array $content 被替换内容（支持批量替换）
-     * @param string  $replace    替换内容
+     * @param string|array  $content 被替换内容（支持批量替换）
+     * @param string        $replace    替换内容
      * @return $this
      */
     public function replace($content, $replace = '')
@@ -160,8 +172,8 @@ class View
     /**
      * 模板变量赋值
      * @access public
-     * @param string $name  变量名
-     * @param mixed $value 变量值
+     * @param string    $name  变量名
+     * @param mixed     $value 变量值
      */
     public function __set($name, $value)
     {

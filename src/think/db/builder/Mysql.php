@@ -18,6 +18,7 @@ use think\db\Builder;
  */
 class Mysql extends Builder
 {
+    protected $updateSql = 'UPDATE %TABLE% %JOIN% SET %SET% %WHERE% %ORDER%%LIMIT% %LOCK%%COMMENT%';
 
     /**
      * 字段和表名处理
@@ -30,8 +31,8 @@ class Mysql extends Builder
         $key = trim($key);
         if (strpos($key, '$.') && false === strpos($key, '(')) {
             // JSON字段支持
-            list($field, $name) = explode($key, '$.');
-            $key                = 'jsn_extract(' . $field . ', \'$.\'.' . $name . ')';
+            list($field, $name) = explode('$.', $key);
+            $key                = 'json_extract(' . $field . ', \'$.' . $name . '\')';
         }
         if (!preg_match('/[,\'\"\*\(\)`.\s]/', $key)) {
             $key = '`' . $key . '`';

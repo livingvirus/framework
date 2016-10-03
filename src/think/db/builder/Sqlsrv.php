@@ -18,7 +18,10 @@ use think\db\Builder;
  */
 class Sqlsrv extends Builder
 {
-    protected $selectSql = 'SELECT T1.* FROM (SELECT thinkphp.*, ROW_NUMBER() OVER (%ORDER%) AS ROW_NUMBER FROM (SELECT %DISTINCT% %FIELD% FROM %TABLE%%JOIN%%WHERE%%GROUP%%HAVING%) AS thinkphp) AS T1 %LIMIT%%COMMENT%';
+    protected $selectSql       = 'SELECT T1.* FROM (SELECT thinkphp.*, ROW_NUMBER() OVER (%ORDER%) AS ROW_NUMBER FROM (SELECT %DISTINCT% %FIELD% FROM %TABLE%%JOIN%%WHERE%%GROUP%%HAVING%) AS thinkphp) AS T1 %LIMIT%%COMMENT%';
+    protected $selectInsertSql = 'SELECT %DISTINCT% %FIELD% FROM %TABLE%%JOIN%%WHERE%%GROUP%%HAVING%';
+    protected $updateSql       = 'UPDATE %TABLE% SET %SET% FROM %TABLE% %JOIN% %WHERE% %LIMIT% %LOCK%%COMMENT%';
+    protected $deleteSql       = 'DELETE FROM %TABLE% %USING% %JOIN% %WHERE% %LIMIT% %LOCK%%COMMENT%';
 
     /**
      * order分析
@@ -28,7 +31,23 @@ class Sqlsrv extends Builder
      */
     protected function parseOrder($order)
     {
-        return !empty($order) ? ' ORDER BY ' . $order[0] : ' ORDER BY rand()';
+        if (is_array($order)) {
+            $array = [];
+            foreach ($order as $key => $val) {
+                if (is_numeric($key)) {
+                    if (false === strpos($val, '(')) {
+                        $array[] = $this->parseKey($val);
+                    } elseif ('[rand]' == $val) {
+                        $array[] = $this->parseRand();
+                    }
+                } else {
+                    $sort    = in_array(strtolower(trim($val)), ['asc', 'desc']) ? ' ' . $val : '';
+                    $array[] = $this->parseKey($key) . ' ' . $sort;
+                }
+            }
+            $order = implode(',', $array);
+        }
+        return !empty($order) ? ' ORDER BY ' . $order : ' ORDER BY rand()';
     }
 
     /**
@@ -75,6 +94,12 @@ class Sqlsrv extends Builder
             $limitStr = '(T1.ROW_NUMBER BETWEEN 1 AND ' . $limit[0] . ")";
         }
         return 'WHERE ' . $limitStr;
+    }
+
+    public function selectInsert($fields, $table, $options)
+    {
+        $this->selectSql = $this->selectInsertSql;
+        return parent::selectInsert($fields, $table, $options);
     }
 
 }
