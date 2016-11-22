@@ -149,7 +149,6 @@ class Handle {
 		}
 
 		$data['echo'] = ob_get_clean();
-
 		ob_start();
 		extract($data);
 		include \think\Config::get('exception_tmpl');
@@ -191,7 +190,7 @@ class Handle {
 	 */
 	protected function getMessage(Exception $exception) {
 		$message = $exception->getMessage();
-		if (\think\Config::get('IS_CLI')) {
+		if (PHP_SAPI == 'cli') {
 			return $message;
 		}
 

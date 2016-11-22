@@ -38,7 +38,7 @@ class Error {
 		}
 
 		self::getExceptionHandler()->report($e);
-		if (\think\Config::get('IS_CLI')) {
+		if (PHP_SAPI == 'cli') {
 			self::getExceptionHandler()->renderForConsole(new ConsoleOutput, $e);
 		} else {
 			self::getExceptionHandler()->render($e)->send();

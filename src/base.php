@@ -12,5 +12,5 @@
 \think\Config::load(CONF_PATH);
 // 注册错误和异常处理机制
 \think\Error::register();
-// // 执行应用
+// 执行应用
 \think\App::run()->send();

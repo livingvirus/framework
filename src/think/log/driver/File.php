@@ -19,7 +19,7 @@ class File
     protected $config = [
         'time_format' => ' c ',
         'file_size'   => 2097152,
-        'path'        => LOG_PATH,
+        'path'        => \think\Config::get('LOG_PATH'),
         'apart_level' => [],
     ];
 

@@ -13,6 +13,7 @@ namespace think;
 
 use InvalidArgumentException;
 use think\Cache;
+use think\Config;
 use think\Db;
 use think\db\Query;
 use think\Exception;
@@ -99,7 +100,9 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
     // 验证失败是否抛出异常
     protected $failException = false;
     // 全局查询范围
-    protected static $useGlobalScope = true;
+    protected $useGlobalScope = true;
+    // 是否采用批量验证
+    protected $batchValidate = false;
 
     /**
      * 初始化过的模型.
@@ -126,7 +129,12 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
 
         if (empty($this->name)) {
             // 当前模型名
-            $this->name = basename(str_replace('\\', '/', $this->class));
+            $name       = str_replace('\\', '/', $this->class);
+            $this->name = basename($name);
+            if (Config::get('class_suffix')) {
+                $suffix     = basename(dirname($name));
+                $this->name = substr($this->name, 0, -strlen($suffix));
+            }
         }
 
         if (is_null($this->autoWriteTimestamp)) {
@@ -141,9 +149,10 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
     /**
      * 获取当前模型的数据库查询对象
      * @access public
+     * @param bool $baseQuery 是否调用全局查询范围
      * @return Query
      */
-    public function db()
+    public function db($baseQuery = true)
     {
         $model = $this->class;
         if (!isset(self::$links[$model])) {
@@ -162,6 +171,10 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
             }
 
             self::$links[$model] = $query;
+        }
+        // 全局作用域
+        if ($baseQuery && method_exists($this, 'base')) {
+            call_user_func_array([$this, 'base'], [ & self::$links[$model]]);
         }
         // 返回当前模型的数据库查询对象
         return self::$links[$model];
@@ -401,9 +414,10 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
             // 类型转换
             $value = $this->readTransform($value, $this->type[$name]);
         } elseif ($notFound) {
-            if (method_exists($this, $name) && !method_exists('\think\Model', $name)) {
+            $method = Loader::parseName($name, 1);
+            if (method_exists($this, $method) && !method_exists('\think\Model', $method)) {
                 // 不存在该字段 获取关联数据
-                $value = $this->relation()->getRelation($name);
+                $value = $this->relation()->getRelation($method);
                 // 保存关联对象值
                 $this->data[$name] = $value;
             } else {
@@ -637,7 +651,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
         if (false === $this->trigger('before_write', $this)) {
             return false;
         }
-
+        $pk = $this->getPk();
         if ($this->isUpdate) {
             // 自动更新
             $this->autoCompleteData($this->update);
@@ -668,15 +682,12 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
                 $where = $this->updateWhere;
             }
 
-            if (!empty($where)) {
-                $pk = $this->getPk();
-                if (is_string($pk) && isset($data[$pk])) {
-                    if (!isset($where[$pk])) {
-                        unset($where);
-                        $where[$pk] = $data[$pk];
-                    }
-                    unset($data[$pk]);
+            if (is_string($pk) && isset($data[$pk])) {
+                if (!isset($where[$pk])) {
+                    unset($where);
+                    $where[$pk] = $data[$pk];
                 }
+                unset($data[$pk]);
             }
 
             $result = $this->db()->where($where)->update($data);
@@ -700,10 +711,9 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
             $result = $this->db()->insert($this->data);
 
             // 获取自动增长主键
-            if ($result) {
+            if ($result && is_string($pk) && !isset($this->data[$pk])) {
                 $insertId = $this->db()->getLastInsID($sequence);
-                $pk       = $this->getPk();
-                if (is_string($pk) && $insertId) {
+                if ($insertId) {
                     $this->data[$pk] = $insertId;
                 }
             }
@@ -733,7 +743,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
             // 数据批量验证
             $validate = $this->validate;
             foreach ($dataSet as $data) {
-                if (!$this->validate($validate)->validateData($data)) {
+                if (!$this->validateData($data, $validate)) {
                     return false;
                 }
             }
@@ -749,9 +759,9 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
             }
             foreach ($dataSet as $key => $data) {
                 if (!empty($auto) && isset($data[$pk])) {
-                    $result[$key] = self::update($data);
+                    $result[$key] = self::update($data, [], $this->field);
                 } else {
-                    $result[$key] = self::create($data);
+                    $result[$key] = self::create($data, $this->field);
                 }
             }
             $db->commit();
@@ -846,9 +856,10 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
      * @access public
      * @param array|string|bool $rule 验证规则 true表示自动读取验证器类
      * @param array             $msg 提示信息
+     * @param bool              $batch 批量验证
      * @return $this
      */
-    public function validate($rule = true, $msg = [])
+    public function validate($rule = true, $msg = [], $batch = false)
     {
         if (is_array($rule)) {
             $this->validate = [
@@ -858,6 +869,7 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
         } else {
             $this->validate = true === $rule ? $this->name : $rule;
         }
+        $this->batchValidate = $batch;
         return $this;
     }
 
@@ -877,12 +889,15 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
      * 自动验证数据
      * @access protected
      * @param array $data 验证数据
+     * @param mixed $rule 验证规则
+     * @param bool  $batch 批量验证
      * @return bool
      */
-    protected function validateData($data)
+    protected function validateData($data, $rule = null, $batch = null)
     {
-        if (!empty($this->validate)) {
-            $info = $this->validate;
+        $info = is_null($rule) ? $this->validate : $rule;
+
+        if (!empty($info)) {
             if (is_array($info)) {
                 $validate = Loader::validate();
                 $validate->rule($info['rule']);
@@ -897,7 +912,9 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
                     $validate->scene($scene);
                 }
             }
-            if (!$validate->check($data)) {
+            $batch = is_null($batch) ? $this->batchValidate : $batch;
+
+            if (!$validate->batch($batch)->check($data)) {
                 $this->error = $validate->getError();
                 if ($this->failException) {
                     throw new ValidateException($this->error);
@@ -962,12 +979,16 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
     /**
      * 写入数据
      * @access public
-     * @param array     $data 数据数组
+     * @param array         $data 数据数组
+     * @param array|true    $field 允许字段
      * @return $this
      */
-    public static function create($data = [])
+    public static function create($data = [], $field = null)
     {
         $model = new static();
+        if (!empty($field)) {
+            $model->allowField($field);
+        }
         $model->isUpdate(false)->save($data, []);
         return $model;
     }
@@ -975,13 +996,17 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
     /**
      * 更新数据
      * @access public
-     * @param array     $data 数据数组
-     * @param array     $where 更新条件
+     * @param array         $data 数据数组
+     * @param array         $where 更新条件
+     * @param array|true    $field 允许字段
      * @return $this
      */
-    public static function update($data = [], $where = [])
+    public static function update($data = [], $where = [], $field = null)
     {
-        $model  = new static();
+        $model = new static();
+        if (!empty($field)) {
+            $model->allowField($field);
+        }
         $result = $model->isUpdate(true)->save($data, $where);
         return $model;
     }
@@ -1109,8 +1134,8 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
      */
     public static function useGlobalScope($use)
     {
-        $model                  = new static();
-        static::$useGlobalScope = $use;
+        $model                 = new static();
+        $model->useGlobalScope = $use;
         return $model;
     }
 
@@ -1134,8 +1159,9 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
                     ->join($table . ' b', 'a.' . $info['localKey'] . '=b.' . $info['foreignKey'], $info['joinType'])
                     ->group('b.' . $info['foreignKey'])
                     ->having('count(' . $id . ')' . $operator . $count);
-            case Relation::HAS_MANY_THROUGH:
-                // TODO
+            case Relation::HAS_MANY_THROUGH: // TODO
+            default:
+                return $model;
         }
     }
 
@@ -1166,8 +1192,9 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
                     ->field('a.*')
                     ->join($table . ' b', 'a.' . $info['localKey'] . '=b.' . $info['foreignKey'], $info['joinType'])
                     ->where($where);
-            case Relation::HAS_MANY_THROUGH:
-                // TODO
+            case Relation::HAS_MANY_THROUGH: // TODO
+            default:
+                return $model;
         }
     }
 
@@ -1333,10 +1360,6 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
     public function __call($method, $args)
     {
         $query = $this->db();
-        // 全局作用域
-        if (static::$useGlobalScope && method_exists($this, 'base')) {
-            call_user_func_array('static::base', [ & $query]);
-        }
         if (method_exists($this, 'scope' . $method)) {
             // 动态调用命名范围
             $method = 'scope' . $method;
@@ -1350,22 +1373,8 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
 
     public static function __callStatic($method, $params)
     {
-        $query = self::getDb();
-        $model = get_called_class();
-        // 全局作用域
-        if (static::$useGlobalScope && method_exists($model, 'base')) {
-            call_user_func_array('static::base', [ & $query]);
-        }
+        $query = (new static())->db();
         return call_user_func_array([$query, $method], $params);
-    }
-
-    protected static function getDb()
-    {
-        $model = get_called_class();
-        if (!isset(self::$links[$model])) {
-            self::$links[$model] = (new static())->db();
-        }
-        return self::$links[$model];
     }
 
     /**
@@ -1461,6 +1470,49 @@ abstract class Model implements \JsonSerializable, \ArrayAccess
     public function __wakeup()
     {
         $this->initialize();
+    }
+
+    /**
+     * 模型事件快捷方法
+     */
+    protected static function beforeInsert($callback, $override = false)
+    {
+        self::event('before_insert', $callback, $override);
+    }
+
+    protected static function afterInsert($callback, $override = false)
+    {
+        self::event('after_insert', $callback, $override);
+    }
+
+    protected static function beforeUpdate($callback, $override = false)
+    {
+        self::event('before_update', $callback, $override);
+    }
+
+    protected static function afterUpdate($callback, $override = false)
+    {
+        self::event('after_update', $callback, $override);
+    }
+
+    protected static function beforeWrite($callback, $override = false)
+    {
+        self::event('before_write', $callback, $override);
+    }
+
+    protected static function afterWrite($callback, $override = false)
+    {
+        self::event('after_write', $callback, $override);
+    }
+
+    protected static function beforeDelete($callback, $override = false)
+    {
+        self::event('before_delete', $callback, $override);
+    }
+
+    protected static function afterDelete($callback, $override = false)
+    {
+        self::event('after_delete', $callback, $override);
     }
 
 }
