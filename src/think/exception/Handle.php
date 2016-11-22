@@ -12,7 +12,6 @@
 namespace think\exception;
 
 use Exception;
-use think\App;
 use think\Config;
 use think\console\Output;
 use think\Lang;
@@ -34,7 +33,7 @@ class Handle {
 	public function report(Exception $exception) {
 		if (!$this->isIgnoreReport($exception)) {
 			// 收集异常数据
-			if (App::$debug) {
+			if (Config::get('DEBUG')) {
 				$data = [
 					'file' => $exception->getFile(),
 					'line' => $exception->getLine(),
@@ -82,7 +81,7 @@ class Handle {
 	 * @param Exception $e
 	 */
 	public function renderForConsole(Output $output, Exception $e) {
-		if (App::$debug) {
+		if (Config::get('DEBUG')) {
 			$output->setVerbosity(Output::VERBOSITY_DEBUG);
 		}
 		$output->renderException($e);
@@ -95,7 +94,7 @@ class Handle {
 	protected function renderHttpException(HttpException $e) {
 		$status = $e->getStatusCode();
 		$template = Config::get('http_exception_template');
-		if (!App::$debug && !empty($template[$status])) {
+		if (!Config::get('DEBUG') && !empty($template[$status])) {
 			return Response::create($template[$status], 'view', $status)->assign(['e' => $e]);
 		} else {
 			return $this->convertExceptionToResponse($e);
@@ -108,7 +107,7 @@ class Handle {
 	 */
 	protected function convertExceptionToResponse(Exception $exception) {
 		// 收集异常数据
-		if (App::$debug) {
+		if (Config::get('DEBUG')) {
 			// 调试模式，获取详细的错误信息
 			$data = [
 				'name' => get_class($exception),
@@ -147,11 +146,10 @@ class Handle {
 		while (ob_get_level() > 1) {
 			ob_end_clean();
 		}
-
 		$data['echo'] = ob_get_clean();
 		ob_start();
 		extract($data);
-		include \think\Config::get('exception_tmpl');
+		include Config::get('exception_tmpl');
 		// 获取并清空缓存
 		$content = ob_get_clean();
 		$response = new Response($content, 'html');

@@ -13,4 +13,5 @@
 // 注册错误和异常处理机制
 \think\Error::register();
 // 执行应用
-\think\App::run()->send();
+new Model('asdfasdfsadf');
+//\think\App::run()->send();

@@ -76,7 +76,7 @@ class Error {
 		}
 
 		// 写入日志
-		Log::save();
+		//Log::save();
 	}
 
 	/**
